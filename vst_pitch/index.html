@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+
+      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+
+      crossorigin="anonymous">
+    <title>音程解析VSTプラグイン(vst_pitch)</title>
+  </head>
+  <body>
+    <div class="container">
+      <!-- shinobi ct2 -->
+      <div style="text-align: right;"> <a href="http://ct2.chakin.com/gg/1706946"><img
+
+            src="http://ct2.chakin.com/ll/1706946" alt="カウンター" border="0"></a></div>
+      <!-- /shinobi ct2 -->
+      <h1>リアルタイム音程解析 VSTプラグイン(vst_pitch)</h1>
+      <p>最終更新日：2018/8/4</p>
+      <p>音程をリアルタイムにグラフ表示するVSTプラグインです。</p>
+      <p>MIDIトラックの出力を入力することで、MIDIの音程を重ねて表示することができます。<br>
+        視覚的に音程が正しいか確認することができます。<br>
+        VSTプラグインなので、DAWで録音した音声の解析も可能です。</p>
+      <img src="vst_pitch.png"><br>
+      <br>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-url="https://tadaoyamaoka.github.io/home/vst_pitch/"
+
+        data-via="TadaoYamaoka">Tweet</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script> <a
+
+        href="http://b.hatena.ne.jp/entry/https://tadaoyamaoka.github.io/home/vst_pitch/"
+
+        class="hatena-bookmark-button" data-hatena-bookmark-title="音で操作する仮想ゲームパッド Audio Pad"
+
+        data-hatena-bookmark-layout="standard-balloon" data-hatena-bookmark-lang="ja"
+
+        title="このエントリーをはてなブックマークに追加"><img src="https://b.st-hatena.com/images/entry-button/button-only@2x.png"
+
+          alt="このエントリーをはてなブックマークに追加" style="border: none;" height="20" width="20"></a>
+      <script type="text/javascript" src="https://b.st-hatena.com/js/bookmark_button.js"
+
+charset="utf-8" async="async"></script>
+      <!-- facebook -->
+      <script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/ja_JP/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+      <h2>【動作環境】</h2>
+      <ul>
+        <li>Windows7 32/64bit 以上</li>
+        <li>VSTプラグインに対応したDAWソフト(Cubase等)</li>
+        <li>対応サンプリングレートは44100Hzのみ</li>
+      </ul>
+      <h2>【ダウンロード】</h2>
+      <h3>バージョン 1.04</h3>
+      <ul>
+        <li><a href="vst_pitch_32_104.zip">32bit版</a></li>
+        <li><a href="vst_pitch_64_104.zip">64bit版</a></li>
+      </ul>
+      <h3></h3>
+      <h3>バージョン 1.03</h3>
+      <ul>
+        <li><a href="vst_pitch_32_103.zip">32bit版</a></li>
+        <li><a href="vst_pitch_64_103.zip">64bit版</a></li>
+      </ul>
+      <h3>バージョン 1.02</h3>
+      <ul>
+        <li><a href="vst_pitch_32_102.zip">32bit版</a></li>
+        <li><a href="vst_pitch_64_102.zip">64bit版</a></li>
+      </ul>
+      <h3>バージョン 1.01</h3>
+      <ul>
+        <li><a href="vst_pitch_32_101.zip">32bit版</a></li>
+        <li><a href="vst_pitch_64_101.zip">64bit版</a></li>
+      </ul>
+      <h3>バージョン 1.00<br>
+      </h3>
+      <ul>
+        <li><a href="vst_pitch_32_100.zip">32bit版</a></li>
+        <li><a href="vst_pitch_64_100.zip">64bit版</a></li>
+      </ul>
+      <p>使用するVSTホスト(DAWソフト)に合わせてダウンロードしてください。<br>
+        bitが異なる場合、使用できないか、音飛びが発生します。</p>
+      <p>新しいバージョンに入れ替えた場合は、VSTプラグインを追加し直してください。</p>
+      <ul>
+      </ul>
+      <h2>【インストール方法】</h2>
+      <p>ダウンロードしたzipファイルを任意のフォルダに解凍した後、DAWソフトのVSTプラグインの設定に追加してください。</p>
+      <ul>
+        <li><a href="example.html#setting_cubase">Cubase7.5での設定例</a></li>
+        <li><a href="example.html#setting_reaper">REAPER 0.999での設定例</a></li>
+      </ul>
+      <h3> </h3>
+      <h2>【使い方】</h2>
+      VSTプラグインの使い方はDAWソフトによって異なりますので、各DAWソフトのマニュアル等を参照してください。<br>
+      ここでは、Cubase7.5と<a href="http://reaper.fm/download-old.php?ver=0x">REAPER 0.999</a>での使い方を説明します。<br>
+      <ul>
+        <li><a href="example.html#usage_cubase">Cubase7.5での使用方法</a></li>
+        <li><a href="example.html#usage_reaper">REAPER 0.999での使用方法</a></li>
+      </ul>
+      <ol>
+      </ol>
+      <h3>その他の使い方</h3>
+      <h4>Hold機能</h4>
+      画面右上の「Hold」ボタンをクリックすると、画面表示を停止できます。再開するにはもう一度「Hold」ボタンを押してください。<br>
+      <h4>解析パラメータ設定</h4>
+      DAWソフトでVSTパラメータの設定ができます。<br>
+      設定方法はDAWソフトによって異なるため、DAWソフトのマニュアルを参照してください。<br>
+      <br>
+      編集できるパラメータは、以下のとおりです。<br>
+      <span style="text-decoration: line-through;"> VolThres：音量の閾値</span>(ver.1.01ではThresholが同じ意味)<br>
+      Threshol：ピッチと認識するスペクトル強度の閾値<br>
+      440Hz=：440HzをA4にするか、A3にするか(ver.1.01から)<br>
+      Resoluti：解析周波数精度（Low：低い、Mid：普通、High：高い）<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 解析精度を高くすると、レスポンスは悪くなります。<br>
+      AnaBegin：解析範囲(最低音階)<br>
+      AnaEnd：解析範囲(最高音階)<br>
+      DispRang：1画面に表示する音階の数(半音単位)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ビブラートの詳細に見たいなどの場合、音階数を少なくするとより1音階が広く表示されます。<br>
+      <br>
+      <ul>
+        <li><a href="example.html#param_cuase">Cubase7.5での解析パラメータ設定例</a></li>
+      </ul>
+      <h2>【おすすめの使い方】</h2>
+      <p>シングルCDについてくるカラオケのトラックと、メロディを打ち込んだMIDIトラックを用意すると、<br>
+        カラオケ採点機能のようなことができます。（採点はしませんが、視覚的に音程を確認できます。）</p>
+      <p>メロディをMIDIにするのは、耳コピができないと敷居が高いのと、少し根気がいる作業です。<br>
+        私の場合は、1曲、1～2時間くらいかかってしまいます。</p>
+      <p>耳コピができない場合も、自分で取り込んだCDを再生しながら歌った音程が表示されるので、<br>
+        それをMIDIに打ち込んで、打ち込んだMIDIを鳴らしてみて合っているか確認すれば、<br>
+        時間はかかりますが誰でも打ち込みは可能です。</p>
+      <p>楽譜を買ってしまえばてっとり早いです。</p>
+      <p>CDのフルトラックとカラオケトラックから、<a href="http://www.vector.co.jp/soft/win95/art/se127635.html">歌声りっぷ</a>でVocalトラックを作って、<br>
+        CubaseのVariAudioや、<a href="http://ackiesound.ifdef.jp/download.html#wt">WaveTone</a>を使って音程解析する手もあります。<br>
+        上記の方法と併用すると効率よく耳コピできます。</p>
+      <p>曲のテンポの設定は、DAWの解析機能や、<a href="http://ackiesound.ifdef.jp/download.html#wt">WaveTone</a>を使って自動で解析できます。<br>
+        CDを取り込んだトラックは始まりが拍の開始と合っていないので合わせる作業が必要です。<br>
+        私の場合は、<a href="../tempo/tempo.html">自作のソフト</a>で曲のテンポと開始位置を解析しています。（他の方が使えるものではないので公開はしてません。）<br>
+      </p>
+      <h2>【著作権/免責事項】</h2>
+      <p>本ソフトウェアはフリーソフトです。なお、著作権は作者に帰属します。<br>
+        また、本ソフトウェアは使用した結果については、作者は一切責任を負えないためご了承ください。</p>
+      <h2>【サポート/連絡先】</h2>
+      <p>このページの末尾のメールアドレスで承ります。</p>
+      <h2>【参考】</h2>
+      <p>本ソフトは、元々フリーソフトで公開していた<a href="../prmonitor/">音階＆リズム測定ソフト Pitch&amp;Rhythm Monitor（prmonitor）</a>に、<br>
+        カラオケトラックの再生機能とMIDIトラックを重ねて表示する機能を付けたいと思っていたのですが、<br>
+        複数トラックの対応とMIDIトラックの再生機能はDAWソフト相当の作り込みが必要になるので、<br>
+        個人の趣味で作るには労力がかかり過ぎることから躊躇していました。</p>
+      <p>それなら、いっそDAWの機能が使えるようにとVSTプラグインとして作成しました。<br>
+        DAWソフトを持っていない方が使用できなくなるという問題はありますが。</p>
+      <p>DAWソフトは高価なのでという方は、オーディオ機能のみであればフリーソフトの<a href="http://reaper.fm/download-old.php?ver=0x">REAPER 0.999</a>が使用できます。<br>
+        MIDIも使おう思えば、<a href="http://neropooh2004.blog.fc2.com/blog-entry-205.html">フリーソフトを組み合わせて工夫</a>すればできなくはないようです。（私は試してはないです。）</p>
+      <p><a href="../prmonitor/">音階＆リズム測定ソフト Pitch&amp;Rhythm Monitor（prmonitor）</a>の方は自分で使わなくなってしまったので、<br>
+        今後改良は滞ると思いますので、こちらのソフトを使用してもらえればと思います。</p>
+      <p>iPhone/iPad、Android用にも音程をリアルタイム表示するソフトを作っています。</p>
+      <table boarder="0">
+        <tbody>
+          <tr>
+            <td> <a href="https://itunes.apple.com/jp/app/vocalpitchmonitor/id842218231?mt=8"><img
+
+                  style="width: 150px; height: 150px;" alt="" src="VocalPitchMonitor.png"><br>
+                iPhoneアプリ VocalPitchMonitor</a> </td>
+            <td><a href="https://play.google.com/store/apps/details?id=com.tadaoyamaoka.vocalpitchmonitor&amp;utm_source=global_co&amp;utm_medium=prtnr&amp;utm_content=Mar2515&amp;utm_campaign=PartBadge&amp;pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1"><img
+
+                  alt="Google Play で手に入れよう" src="https://play.google.com/intl/en_us/badges/images/generic/ja_badge_web_generic.png"
+
+                  width="300px"></a></td>
+          </tr>
+        </tbody>
+      </table>
+      <h2>【更新履歴】</h2>
+      <p>ver 1.04&nbsp;&nbsp;&nbsp; 2018/8/4&nbsp; 音程の正解判定の幅を25centに変更</p>
+      <p>ver 1.03&nbsp;&nbsp;&nbsp; 2016/12/31&nbsp; 解析精度改善。</p>
+      <p>ver 1.02&nbsp;&nbsp;&nbsp; 2016/11/5 &nbsp;&nbsp; MIDIノートと音程が一致する場合に色にハイライトを付けるようにした。</p>
+      <p>ver 1.01&nbsp;&nbsp;&nbsp; 2016/9/16 &nbsp;&nbsp; 解析精度改善。440HzをA3とするオプション追加。</p>
+      <p>ver 1.00&nbsp;&nbsp;&nbsp; 2015/3/22&nbsp;&nbsp;&nbsp; 初版公開<br>
+      </p>
+      <hr>
+      <p>山岡忠夫<br>
+        <img alt="" src="../e.png"></p>
+      <p><a href="../">ホームページに戻る</a></p>
+      <!-- Rakuten Widget FROM HERE -->
+      <script type="text/javascript">rakuten_design="slide";rakuten_affiliateId="12fc70e9.cdd64a81.12fc70ea.06f00c48";rakuten_items="ctsmatch";rakuten_genreId=0;rakuten_size="468x160";rakuten_target="_blank";rakuten_theme="gray";rakuten_border="off";rakuten_auto_mode="off";rakuten_genre_title="off";rakuten_recommend="on";</script>
+      <script type="text/javascript" src="http://xml.affiliate.rakuten.co.jp/widget/js/rakuten_widget.js"></script><!-- Rakuten Widget TO HERE --> </div>
+  </body>
+</html>

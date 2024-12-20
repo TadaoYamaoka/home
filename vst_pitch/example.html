@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <title>音程解析VSTプラグイン(vst_pitch)</title>
+  </head>
+  <body>
+    <h3><a id="setting_cubase" name="cubase"></a>Cubase7.5での設定例</h3>
+    <p>ダウンロードしたzipファイルを任意のディレクトリ（以下の例では「C:\Program Files\VstPlugins\vst_pitch.dll」）に解凍した後、<br>
+      Cubaseのメニューから「デバイス」→「プラグイン情報」を選択し、<br>
+      「VST 2.xプラグインのパス」ボタンを押して、<br>
+      「追加」ボタンを押して、「C:\Program Files\VstPlugins」を選択してください。<br>
+      「C:\Program Files\VstPlugins」が追加済みの場合は、追加の操作は不要です。</p>
+    <p>Cubaseを再起動して、メニューから「デバイス」→「プラグイン情報」を選択して、VSTプラグインの一覧に「vst_pitch」が表示されていることを確認してください。</p>
+    <img style="width: 775px; height: 440px;" alt="" src="vstplugin.png"><br>
+    <h3><a name="usage_cubase"></a>Cubase7.5での使用方法</h3>
+    <ol>
+      <li>プロジェクトに音程を解析したいAudioトラックを追加します。(モノラル/ステレオどちらでも構いません。)<br>
+        <img style="width: 413px; height: 420px;" alt="" src="insert_audiotrack.png"><br>
+      </li>
+      <li>追加したAudioトラックのインスペクターのInsertsから、「vst_pitch」を選択して、VSTプラグインを挿入します。<br>
+        vst_pitchの画面が表示されます。<br>
+        <img style="width: 531px; height: 441px;" alt="" src="insert_vstpitch.png"><br>
+      </li>
+      <li>録音中の音声の音程をリアルタイムに解析するには、AudioトラックのモニタリングをONにします。<br>
+        <img style="width: 529px; height: 438px;" alt="" src="monitoring.png"><br>
+      </li>
+      <li>マイクから音声を入力して、音程がグラフ表示されることを確認してください。<br>
+        <img style="width: 534px; height: 444px;" alt="" src="realtime.png"><br>
+      </li>
+      <li>録音した音声を解析するには、Audioトラックに音声を録音して、再生してください。<br>
+        その際、モニタリングはOFFにする必要があります。<br>
+      </li>
+      <li>MIDIトラックを重ねて表示するには、プロジェクトにMIDIトラックを追加し、<br>
+        MIDIトラックのインスペクターからMIDI OUTを「Audio01:Ins.1vst_pitch - MIDI In」に設定します。<br>
+        <img style="width: 532px; height: 432px;" alt="" src="midiout.png"><br>
+      </li>
+      <li>再生しながら音声を入力すると、MIDIトラックのノートと音程が重なって表示されます。<br>
+        青のラインがMIDI、黄色のラインが音声の音程です。<br>
+        <img style="width: 538px; height: 437px;" alt="" src="midi_pitch.png"><br>
+      </li>
+    </ol>
+    <h4><a id="paramset_cubase" name="paramset_cubase"></a>Cubase7.5での解析パラメータ設定例</h4>
+    VST画面のメニューから「一般エディターに切り替え」を行うと、パラメータの編集ができます。<br>
+    <img style="width: 516px; height: 243px;" alt="" src="editparam.png"><br>
+    編集できるパラメータは、<br>
+    VolThres：音量の閾値<br>
+    Threshol：ピッチと認識するスペクトル強度の閾値<br>
+    Resoluti：解析周波数精度（Low：低い、Mid：普通、High：高い）<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 解析精度を高くすると、レスポンスは悪くなります。<br>
+    AnaBegin：解析範囲(最低音階)<br>
+    AnaEnd：解析範囲(最高音階)<br>
+    DispRang：1画面に表示する音階の数(半音単位)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ビブラートの詳細に見たいなどの場合、音階数を少なくするとより1音階が広く表示されます。<br>
+    <img alt="" src="editparam2.png"><br>
+    <br>
+    <hr>
+    <h3><a id="setting_reaper" name="reaper_setting"></a>REAPER 0.999での設定例</h3>
+    ダウンロードしたzipファイルを任意のディレクトリ（以下の例では「C:\Program Files (x86)\Cakewalk\Vstplugins」）に解凍した後、<br>
+    REAPERのメニューから[Options]→[Preferences]を選択し、<br>
+    <br>
+    <img style="width: 607px; height: 424px;" alt="" src="reaper_option.png"><br>
+    <br>
+    左ペインから、「FX Plug-ins」を選択し、VST plug-ins pathsに「C:\Program Files (x86)\Cakewalk\Vstplugins」と入力し、<br>
+    [Add...]ボタンを押してから、[Recan directory]ボタンを押します。<br>
+    その後、[OK]ボタンを押してウィンドウを閉じます。<br>
+    <br>
+    <img alt="" src="reaper_vst.png"><br>
+    <br>
+    <h3><a id="usage_reaper" name="usage_reaper"></a>REAPER 0.999での使用方法</h3>
+    1. メニューから[Track]→[Add new track]を選択し、オーディオトラックを追加します。<br>
+    <br>
+    <img alt="" src="reaper_addtrack.png"><br>
+    <br>
+    2. 追加されたオーディオのトラックの[fx]ボタンをクリックします。<br>
+    <br>
+    <img alt="" src="reaper_fx.png"><br>
+    <br>
+    3. 左ペインから「All Plugins」→「VST」を選択し、「VST:vst_pitch」を選択して、[OK]を押します。<br>
+    ※「VST:vst_pitch」が表示されない場合は、<a href="#setting_reaper">VSTプラグインの設定</a>を見なおしてください。<br>
+    <br>
+    <img alt="" src="reaper_vstpitch.png"><br>
+    <br>
+    4. 下図のようなウィンドウが表示されます。<br>
+    <br>
+    <img style="width: 633px; height: 365px;" alt="" src="reaper_fxwindow.png"><br>
+    <br>
+    5. リアルタイムに入力した音声の音程を解析するには、オーディオトラックの録音をONにして、<br>
+    モニタリングをONにした状態で、マイクから音声を入力してください。<br>
+    上記4.で表示された「FX chain for track 1」ウィンドウに、リアルタイムに音程がグラフ表示されます。<br>
+    <br>
+    ※リアルタイムにモニタリングする場合は、オーディオデバイスの設定が「ASIO」でないと、<br>
+    かなりのラグが発生します。「ASIO」に対応したオーディオデバイスを持っていない場合は、<br>
+    「<a href="http://www.asio4all.com/">ASIO4ALL</a>」をインストールしてください。<br>
+    ASIO4ALLの設定方法はここでは解説しませんので、調べてください。<br>
+    <br>
+    <img style="width: 1052px; height: 527px;" alt="" src="reaper_monitor.png"><br>
+    <br>
+    6. 録音した音声を解析するには、REAPERで録音を行って、再生を行えば、モニタリングのときと同様に、<br>
+    「FX chain for track 1」ウィンドウに、音程がグラフ表示されます。<br>
+    <br>
+    <hr>
+    <p>山岡忠夫<br>
+      <img alt="" src="../e.png"></p>
+    <p><a href="./index.html">戻る</a></p>
+    <!-- Rakuten Widget FROM HERE -->
+    <script type="text/javascript">rakuten_design="slide";rakuten_affiliateId="12fc70e9.cdd64a81.12fc70ea.06f00c48";rakuten_items="ctsmatch";rakuten_genreId=0;rakuten_size="468x160";rakuten_target="_blank";rakuten_theme="gray";rakuten_border="off";rakuten_auto_mode="off";rakuten_genre_title="off";rakuten_recommend="on";</script>
+    <script type="text/javascript" src="http://xml.affiliate.rakuten.co.jp/widget/js/rakuten_widget.js"></script><!-- Rakuten Widget TO HERE -->
+  </body>
+</html>
