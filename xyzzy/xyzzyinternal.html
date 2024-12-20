@@ -1,0 +1,129 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>
+xyzzyの内部構造
+</title>
+</head>
+<body>
+<div align="right">
+<!-- shinobi ct2 -->
+<script type="text/javascript" src="http://ct2.nukimi.com/sc/1287212"></script>
+<noscript><a href="http://ct2.nukimi.com/gg/1287212" target="_blank">
+<img src="http://ct2.nukimi.com/ll/1287212" border="0" alt="カウンター" /></a>
+<span id="NINCT1SPAN1287212" style="font-size:9px"></span></noscript>
+<!-- /shinobi ct2 -->
+</div>
+<pre>
+xyzzyの内部構造
+
+更新日付：2009/11/14
+
+xyzzyのソースを調べたメモ（書きかけ）
+
+
+メモリ管理(alloc.h、alloc.cc)
+
+テキストバッファは、チャンク（塊）の双方向リンクリストで構成
+
+一つのチャンクは4096文字＝4096×2byte＝8192byte
+
+チャンクのメモリ割り当て
+
+fixed_heap
+    ↓
+alloc_page
+
+alloc_pageは、ランタイムライブラリのmallocやnewは使用していない
+Win32 APIのHeapAllocも使用していない
+
+VirtualAllocを使用して、アドレスの予約を64KB単位で行い、
+そこからページ単位（4096byte）でコミットを行いメモリの割り当てを行っている。
+
+
+■malloc、newやHeapAllocよりも高速なのか？
+
+VirtualAllocを使用して独自にメモリアロケータを実装するのは
+mallocなどC/C++の標準関数やWindowsAPIのHeapAllocを使用するよりも高速なのか？
+実験を行ってみた。
+
+★実験1
+測定条件：
+・20000回連続でallocした後、20000回freeするという動作を10回繰り返す
+・1回の割り当てサイズ 4096(ページサイズ)
+・最適化オプション/Oxでコンパイル
+・測定マシン：Core 2 Quad 9550
+
+単位(ms)
+page_alloc : 586 (alloc : 311, free : 275)
+malloc     : 358 (alloc : 258, free : 100)
+new        : 405 (alloc : 301, free : 104)
+HeapAlloc  : 395 (alloc : 297, free :  98)
+
+※page_allocがxyzzyが実装しているメモリアロケータ
+※単位はms
+
+結果
+page_allocがalloc、freeともに最も遅いという結果になった。
+
+ログを追加してボトルネックの箇所を特定したところ、
+ページのコミット／デコミットに90%近くの時間を消費していた。
+そこで、xyzzyで実装されているようにページ単位でのコミット／デコミットを行わず、
+アドレス予約単位で予約（同時にコミット）／解放を行い、そこからページ単位のメモリを
+内部で管理して割り当てるように変更して測定してみた。
+
+★実験2
+page_alloc : 305 (alloc : 245, free :  60)
+malloc     : 393 (alloc : 307, free :  86)
+new        : 379 (alloc : 301, free :  78)
+HeapAlloc  : 371 (alloc : 285, free :  86)
+
+結果
+alloc、freeともに最も早くなった。
+
+
+xyzzyのテキストバッファにはalloc_pageが使用されているが、
+int型などのサイズの小さいメモリのヒープ管理は、fixed_heapを介してalloc_pageが使用されている。
+fixed_heapでintの配列をヒープで割り当てる場合の速度についても測定してみた。
+
+★実験3
+測定条件：
+・20000回連続でallocした後、20000回freeするという動作を10回繰り返す
+・1回の割り当てサイズ int(4byte)
+・最適化オプション/Oxでコンパイル
+・測定マシン：Core 2 Quad 9550
+
+fixed_heap : 220 (alloc :   1, free : 219)
+malloc     :  56 (alloc :  28, free :  28)
+new        :  56 (alloc :  28, free :  28)
+HeapAlloc  :  27 (alloc :  14, free :  13)
+
+結果
+allocはきわめて高速だが、freeが非常に遅いという結果になった。
+
+page_allocをアドレス予約単位で予約（同時にコミット）／解放を行うように
+変更したバージョンで測定してみた。
+
+★実験4
+fixed_heap : 120 (alloc :   1, free : 119)
+malloc     :  56 (alloc :  27, free :  29)
+new        :  54 (alloc :  28, free :  26)
+HeapAlloc  :  27 (alloc :  14, free :  13)
+
+結果
+freeが半分になったが、それでもmallocなどに比べてかなり遅い。
+
+
+以上の4つの実験から言えることは、xyzzyのメモリ管理は残念ながら非効率で、
+ランタイムライブラリのmallocやnewを使用した方がましということだ。
+
+ただし、テキストバッファの管理にはpage_allocのコミット／デコミットの単位を
+アドレス予約の単位に改良することでmalloc、newよりも効率的になる。
+
+また、実験の結果からmalloc、new、HeapAllocのメモリ管理は非常に優秀だということがわかった。
+malloc、new、HeapAllocの中では、ほぼ同等の結果だが、メモリサイズが小さい場合HeapAllocが特に高速である。
+
+
+</pre>
+</body>
+</html>

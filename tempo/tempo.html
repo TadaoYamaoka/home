@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta content="text/html; charset=shift_jis" http-equiv="content-type">
+    <title></title>
+  </head>
+  <body>
+    <div align="right"><!-- shinobi ct2 -->
+      <script type="text/javascript" src="http://ct2.uijin.com/sc/1593282"></script>
+      <noscript><a href="http://ct2.uijin.com/gg/1593282" target="_blank">
+<img src="http://ct2.uijin.com/ll/1593282" alt="カウンター" border="0"></a></noscript>
+      <!-- /shinobi ct2 --></div>
+    <h1>C/C++言語で音声ファイルのテンポ解析を行うサンプルプログラム</h1>
+    <p>更新日時：2012/2/5</p>
+    <p>C/C++言語で音楽の音声ファイルのテンポ解析を行うサンプルプログラムです。テンポ(BPM)と拍の開始位置を解析します。</p>
+    <p>サンプルのため、対応しているwavファイルのフォーマットは、チャンネル数がステレオで、ビット／サンプルが16bit、サンプリング周波数が44.1kHzのみです。 </p>
+    <h3>サンプルソース</h3>
+    <p>サンプルソースの主要部分は<a href="#source">下の方</a>に載せています。全ソースは<a href="tempo.cpp.txt">こちら</a>にあります。ビルド済みの実行ファイルとVisual C++ 2010 Express Edition用のプロジェクトは<a
+        href="tempo.zip">こちら</a>からダウンロードできます。</p>
+    <h3>解説</h3>
+    <p>一般的に音楽の音声ファイルは拍の開始位置で音量が増加する特性があるため、音量の増加量が時間方向に周期的に表れます。そのため音量の時間変化の周波数成分から周期を求めることで、テンポが解析できます。また、周波数成分の位相から拍の開始位置を求めることができます。</p>
+    <p>テンポ解析の処理の流れは以下の通りです。</p>
+    <div style="MARGIN: 40px">
+      <ol>
+        <li>wavファイルを一定時間(以下フレーム)ごとに区切る。 </li>
+        <li>フレームごとの音量を求める。 </li>
+        <li>隣り合うフレームの音量の増加量を求める。 </li>
+        <li>増加量の時間変化の周波数成分を求める。 </li>
+        <li>周波数成分のピークを検出する。 </li>
+        <li>ピークの周波数からテンポを計算する。 </li>
+        <li>ピークの周波数成分の位相から拍の開始位置を計算する。</li>
+      </ol>
+    </div>
+    <p>それぞれの処理について以下で説明します。</p>
+    <h4>１．wavファイルを一定時間(以下フレーム)ごとに区切る</h4>
+    <p>一般的な音楽のテンポは60～240BPMで、また小数点のBPMは設定されません。そのため、1フレームは少なくとも60～240BPMを1BPM単位で区別できる長さにする必要となります。239BPMと240BPMを区別できるようにすると、1フレームは60÷239&nbsp;- 60÷240≒0.001秒の長さとする必要があります。サンプリング周波数が44.1kHzの場合、1フレームのサンプル数は0.001×44100＝44.1個となります。しかし、1フレームの長さを短くしすぎると周波数解析に時間がかかります。また、1フレームの精度が不足しても、音楽ファイル全体を解析すると複数周期がふくまれるため平均されて正しい値に近くなります。実験を行ったことろ、1フレームのサンプル数を10000としても手持ちの音楽ファイルで正確なテンポ解析ができていました。サンプルプログラムでは1フレームのサンプル数を512としています。</p>
+    <h4>２．フレームごとの音量を求める</h4>
+    <p>音量はフレームごとに振幅の実効値を計算します。1フレームのサンプル数をN、振幅をV(n)とすると、以下の式で実効値を計算します。</p>
+    <p align="center"><img alt="" src="eqn1.png" border="0"></p>
+    <h4>３．隣り合うフレームの音量の増加量を求める</h4>
+    <p>i番目のフレーム音量をVol(i)として、フレームごとの音量の増加量Vol(i) - Vol(i-1)を計算します。ただし、増加量がマイナスの値の場合は、増加量を0とします。これは、音量の減少の仕方は増加の仕方と比較して周期性がないためと、位相を計算する際に、周波数解析の基本パターン波形の頂点の位置を拍の開始位置に合わすためです。</p>
+    <h4>４．増加量の時間変化の周波数成分を求める</h4>
+    <p>60BPM～240BPMの範囲を1BPM単位で、sin波形とcos波形を基本パターンとして周波数成分を求めます。n番目のフレームの音量の増加量をD(n)、フレームのサンプリング周波数をsとすると、各BPMのマッチ度R<small>bpm</small>は以下の式で計算できます。</p>
+    <p align="center">
+      <img alt="" src="eqn2.png" border="0"><br>
+      <img alt="" src="eqn3.png" border="0"><br>
+      <img alt="" src="eqn4.png" border="0"> </p>
+    <p>ここで、f<small>bpm</small>はBPM値÷60、sはwavファイルのサンプリング周波数÷フレームのサンプル数です。</p>
+    <h4>５．周波数成分のピークを検出する</h4>
+    <p>各BPMのマッチ度R<small>bpm</small>のピークを検出します。ピークは下図のように1/2、2倍の位置でも検出されるため、サンプルプログラムでは上位3つまでのピークを検出しています。1番目のピークが正しいBPMの1/2、2倍の位置で検出される場合もあります。</p>
+    <p align="center"><img alt="" src="peak.png" border="0"></p>
+    <h4>６．ピークの周波数からテンポを計算する</h4>
+    <p>BPMは1分間(60秒)あたりの拍の数のため、ピークの周波数を60倍した値がBPM値になります。</p>
+    <h4>７．ピークの周波数成分の位相から拍の開始位置を計算する</h4>
+    <p>拍の開始位置は、下図のように周波数解析に使用した基本パターンのsin波形とcos波形を合成した波形の頂点の位置とほぼ一致します。</p>
+    <p align="center"><img alt="" src="match.png" border="0"></p>
+    <p>位相θは、４．で求めたa、bから以下の式で計算します。</p>
+    <p align="center"><img alt="" src="eqn5.png" border="0"></p>
+    <p align="center"><img alt="" src="phase.png" border="0"></p>
+    <p>位相θから拍の開始位置(秒)は以下の式で計算します。θがマイナスの場合は、2πを加算します。</p>
+    <p align="center"><img alt="" src="eqn6.png" border="0"></p>
+    <p>サンプルプログラムでは、DAWソフトのCubaseで開始位置を調整するために、2π-θを拍数でも表示しています。</p>
+    <h3>実行結果</h3>
+    <p>メトロノームの音を録音したwavファイルを解析した結果を下図に示します。</p>
+    <p align="center"><img alt="" src="result1.png" border="0" height="50%"
+        width="50%"><img alt="" src="result2.png" border="0" height="50%"
+        width="50%"><br>
+      132BPMのメトロノームの音を解析した結果</p>
+    <p>
+      1番目のピークで132BPMが正しく検出されています。赤の縦線で表示した拍の開始位置も音量増加の位置とほぼ一致しています。</p>
+    <p>実際の音楽ファイルでは、音量増加の周期が目で見てもわかりにくため解析した結果が正確かは、DAWソフトでテンポと開始位置を設定して聞いて確かめる必要があります。</p>
+    <h3><a name="source"></a>主要部分のソース</h3>
+    <div style="BORDER-BOTTOM: gray 3px solid; BORDER-LEFT: gray 3px solid; BORDER-TOP: gray 3px solid; BORDER-RIGHT: gray 3px solid">
+      <span style="FONT-FAMILY: monospace">&nbsp;&nbsp;const int FRAME_LEN = 512;<br>
+        &nbsp;&nbsp;double frame[FRAME_LEN];<br>
+        <br>
+        &nbsp;&nbsp;int N = datasize/sizeof(short) / 2 / FRAME_LEN;<br>
+        &nbsp;&nbsp;double *vol = new double[N];<br>
+        &nbsp;&nbsp;ZeroMemory(vol, sizeof(double)*N);<br>
+        &nbsp;&nbsp;printf("analyze num: %d\n", N);<br>
+        &nbsp;&nbsp;printf("analyze time : %f sec\n", double(N) * FRAME_LEN / fmt-&gt;dwSamplesPerSec);<br>
+        <br>
+        &nbsp;&nbsp;unsigned long i = 0;<br>
+        &nbsp;&nbsp;int j = 0;<br>
+        &nbsp;&nbsp;int m = 0;<br>
+        &nbsp;&nbsp;while (i &lt;= datasize/sizeof(short) &amp;&amp; m &lt; N)<br>
+        &nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;frame[j] = data[i];<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;j++;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if (j == FRAME_LEN)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 音量(実効値)=sqrt(1/FRAME_LEN * Σframe[n]^2)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;double sum = 0;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (int n = 0; n &lt; FRAME_LEN; n++)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sum += frame[n] * frame[n];<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vol[m] = sqrt(sum / FRAME_LEN);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;m++;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j = 0; // 次フレーム<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;i += 2;<br>
+        &nbsp;&nbsp;}<br>
+        <br>
+        &nbsp;&nbsp;// 音量差分(増加のみ)<br>
+        &nbsp;&nbsp;double *diff = new double[N]; // 音量差分<br>
+        &nbsp;&nbsp;diff[0] = vol[0];<br>
+        &nbsp;&nbsp;for (int i = 1; i &lt; N; i++)<br>
+        &nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if (vol[i] - vol[i-1] &gt; 0)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diff[i] = vol[i] - vol[i-1];<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diff[i] = 0;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;}<br>
+        <br>
+        &nbsp;&nbsp;const double s = double(fmt-&gt;dwSamplesPerSec) / double(FRAME_LEN); // サンプリング周波数<br>
+        <br>
+        &nbsp;&nbsp;// テンポ解析<br>
+        &nbsp;&nbsp;double *a = new double[240-60+1];<br>
+        &nbsp;&nbsp;double *b = new double[240-60+1];<br>
+        &nbsp;&nbsp;double *r = new double[240-60+1];<br>
+        &nbsp;&nbsp;for (int bpm = 60; bpm &lt;= 240; bpm++)<br>
+        &nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double a_sum = 0;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double b_sum = 0;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double f = double(bpm) / 60;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;for (int n = 0; n &lt; N; n++)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;double win = han_window(n, N);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a_sum += diff[n] * cos(2.0 * M_PI * f * n / s) * win;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b_sum += diff[n] * sin(2.0 * M_PI * f * n / s) * win;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 注意：窓関数を使用しないと端の影響で誤差が出る<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double a_tmp = a_sum / N;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double b_tmp = b_sum / N;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;a[bpm-60] = a_tmp;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;b[bpm-60] = b_tmp;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;r[bpm-60] = sqrt(power(a_tmp, b_tmp));<br>
+        &nbsp;&nbsp;}<br>
+        <br>
+        &nbsp;&nbsp;// ピーク解析<br>
+        &nbsp;&nbsp;int peak_x[3];<br>
+        &nbsp;&nbsp;find_peak3(r, 240-60+1, peak_x);<br>
+        &nbsp;&nbsp;double start_n;<br>
+        &nbsp;&nbsp;double beat_gap;<br>
+        &nbsp;&nbsp;for (int idx = 0; idx &lt; 3; idx++)<br>
+        &nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if (peak_x[idx] &lt; 0)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;printf("[%d]\n", idx+1);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;int peak_bpm = peak_x[idx] + 60;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;printf("peak bmp : %d\n", peak_bpm);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;// 位相差<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double theta = atan2(b[peak_x[idx]], a[peak_x[idx]]);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if (theta &lt; 0)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;theta += 2.0 * M_PI;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double peak_f = double(peak_bpm) / 60;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double start_time = theta / (2.0 * M_PI * peak_f);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double start_beat = theta / (2.0 * M_PI);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;printf("first beat time : %f sec\n", start_time);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;printf("first beat : %f beat\n", start_beat);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;double ajust_beat = (2.0 * M_PI - theta) / (2.0 * M_PI);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;int ajust_beat1 = int(ajust_beat*4) % 4;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;int ajust_beat2 = int(ajust_beat*4*120) % 120;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;printf("ajust beat for cubase : 1 . 1 . %d . %d\n", ajust_beat1+1, ajust_beat2);<br>
+        &nbsp;&nbsp;}</span></div>
+    <hr>
+    <a href="http://hp.vector.co.jp/authors/VA046927/">トップページへ</a>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja"><head>
+  
+  <meta content="text/html; charset=Shift_JIS" http-equiv="content-type">
+  <title>大浦版FFTのJava移植</title>
+
+  
+</head><body>
+<div style="text-align: right;"><!-- shinobi ct2 -->
+<script type="text/javascript" src="http://ct2.karakuri-yashiki.com/sc/1549188"></script><noscript><a
+ href="http://ct2.karakuri-yashiki.com/gg/1549188" target="_blank"><img
+ src="http://ct2.karakuri-yashiki.com/ll/1549188" alt="カウンター" border="0"></a></noscript>
+<!-- /shinobi ct2 --></div>
+
+<h1>大浦版FFTのJava移植</h1>
+
+フリーソフトとして公開されているC言語のFFTライブラリである<a href="http://www.kurims.kyoto-u.ac.jp/%7Eooura/fft-j.html">大浦版FFT</a>のうち、個人的に使用目的のあった実離散 Fourier 変換(rdft)をJavaに移植してみた。<br>
+
+<br>
+
+Javaで使用できるFFTライブラリとして、Apache Commons Mathematics
+Libraryやjfftpackがあるが、Apache Commons Mathematics
+Libraryは、性能が悪く実用的でない。jfftpackは、性能は良いがライセンスがGPLのため使用範囲が限られる。大浦版FFTは、性能は
+jfftpackと同等で、フリーソフトで自由に使用できるが、Java言語用のソースは公開されていない。そこで、大浦版FFTのJava言語への移植
+を試みた。<br>
+
+<br>
+
+ポインタ演算を添字の演算に変換するだけで、比較的簡単に移植が可能であった。<br>
+
+<br>
+
+Javaソースコード(FFT4g.java)は、<a href="FFT4g.java">こちら</a>から。パッケージ名は適宜修正してくださ
+い。<br>
+
+<br>
+
+使用方法は、<br>
+
+<br>
+
+FFT4g fft = new FFT4g(1024);<br>
+
+<br>
+
+のように、データ長を引数としてインスタンスを作成し、<br>
+
+<br>
+
+double[] a = new double[1024];<br>
+
+// aに変換元の値を格納<br>
+
+・・・<br>
+
+fft.rdft(1, a);<br>
+
+<br>
+
+のようにして使う。<br>
+第一引数は、1の場合Fourier 変換で、-1にするとFourier
+逆変換となる。<br>
+詳細は、元のfft4g.cのコメントに記
+載されているので、そちらを参照。<br>
+
+<br>
+
+</body></html>

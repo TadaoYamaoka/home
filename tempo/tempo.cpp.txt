@@ -1,0 +1,495 @@
+#include <windows.h>
+#include <stdio.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <float.h>
+#include "resource.h"
+
+#pragma pack(push, 1)
+struct RiffHeader {
+	char          id[4];
+	unsigned long size;
+	char          fmt[4];
+};
+
+struct FormatChunk {
+	char           chunkID[4];
+	long           chunkSize;
+	short          wFormatTag;
+	unsigned short wChannels;
+	unsigned long  dwSamplesPerSec;
+	unsigned long  dwAvgBytesPerSec;
+	unsigned short wBlockAlign;
+	unsigned short wBitsPerSample;
+	/* Note: there may be additional fields here, depending upon wFormatTag. */
+};
+
+struct DataChunk {
+	char           chunkID[4];
+	long           chunkSize; 
+};
+#pragma pack(pop)
+
+struct Rect : RECT
+{
+	LONG width() { return right - left; }
+	LONG height() { return bottom - top; }
+};
+
+//extern "C" void rdft(int n, int isgn, double *a, int *ip, double *w);
+INT CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void GetDlgItemRect(HWND hDlg, int nIDDlgItem, RECT& rc);
+HDC CreateBackBuffer(HWND hWnd, const int width, const int height);
+void find_peak3(const double* a, size_t size, int *max_idx);
+
+inline double power(const double re, const double im)
+{
+	return re*re + im*im;
+}
+
+inline double han_window(const int i, size_t size)
+{
+	return 0.5 - 0.5 * cos(2.0 * M_PI * i / size);
+}
+
+// バックバッファー
+Rect rcPane1, rcPane2, rcPane3;
+HDC hdcPane1, hdcPane2, hdcPane3;
+
+int wmain(int argc, wchar_t *argv[])
+{
+	if (argc < 2)
+	{
+		printf("usage : tempo <input wav file>\n");
+		return 1;
+	}
+
+	wchar_t *fname_in = argv[1];
+
+	// wavファイルオープン
+	HANDLE hFile = CreateFile(fname_in, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		printf("file open error.\n");
+		return 1;
+	}
+	HANDLE hFileMap = CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, 0, NULL);
+	if (hFileMap == NULL)
+	{
+		printf("CreateFileMapping error.\n");
+		return 1;
+	}
+	const void* pBuf = MapViewOfFile(hFileMap, FILE_MAP_READ, 0, 0, 0);
+	if (pBuf == NULL)
+	{
+		printf("MapViewOfFile error.\n");
+		return 1;
+	}
+
+	// RIFFヘッダー
+	struct RiffHeader *header = (struct RiffHeader*)pBuf;
+	if (memcmp(header->id, "RIFF", 4) != 0)
+	{
+		printf("RIFF check error.\n");
+		return 1;
+	}
+	if (memcmp(header->fmt, "WAVE", 4) != 0)
+	{
+		printf("WAVE check error.\n");
+		return 1;
+	}
+	printf("file size : %d\n", header->size);
+
+	// fmtチャンク
+	struct FormatChunk *fmt = (struct FormatChunk*)((unsigned char*)pBuf + sizeof(struct RiffHeader));
+	if (memcmp(fmt->chunkID, "fmt", 3) != 0)
+	{
+		printf("fmt check error.\n");
+		return 1;
+	}
+	printf("FormatTag : %d\n", fmt->wFormatTag);
+	printf("Channels : %d\n", fmt->wChannels);
+	printf("SamplesPerSec : %d\n", fmt->dwSamplesPerSec);
+	printf("BitsPerSample : %d\n", fmt->wBitsPerSample);
+
+	// dataチャンク
+	struct DataChunk *dchunk = (struct DataChunk*)((unsigned char*)pBuf + sizeof(struct RiffHeader) + 8 + fmt->chunkSize);
+	if (memcmp(dchunk->chunkID, "data", 4) != 0)
+	{
+		printf("data chunk check error.\n");
+		return 1;
+	}
+	printf("data size : %d\n", dchunk->chunkSize);
+
+	// サイズチェック
+	unsigned long datasize = dchunk->chunkSize;
+
+	BY_HANDLE_FILE_INFORMATION fi;
+	GetFileInformationByHandle(hFile, &fi);
+	DWORD filesize = fi.nFileSizeLow;
+	if (filesize < sizeof(struct RiffHeader) + 8 + fmt->chunkSize + sizeof(struct DataChunk) + datasize)
+	{
+		printf("data size error.\n");
+		return 1;
+	}
+
+	// 16bitのみ対応
+	if (fmt->wBitsPerSample != 16)
+	{
+		printf("16bit only.\n");
+		return 1;
+	}
+	// stereoのみ対応
+	if (fmt->wChannels != 2)
+	{
+		printf("stereo only.\n");
+		return 1;
+	}
+
+	short *data = (short*)((unsigned char*)pBuf + sizeof(struct RiffHeader) + 8 + fmt->chunkSize + sizeof(struct DataChunk));
+
+	const int FRAME_LEN = 512;
+	double frame[FRAME_LEN];
+
+	int N = datasize/sizeof(short) / 2 / FRAME_LEN;
+	/*if (N > 4096)
+	{
+		N = 4096;
+	}*/
+	double *vol = new double[N];
+
+	ZeroMemory(vol, sizeof(double)*N);
+
+	printf("analyze num: %d\n", N);
+	printf("analyze time : %f sec\n", double(N) * FRAME_LEN / fmt->dwSamplesPerSec);
+
+	// FFT用(音量にFFT係数の合計を使用する場合)
+	/*int ip[46+2];
+	double w[FRAME_LEN*5/4]; // cos/sin work table
+	ip[0] = 0;*/
+
+	unsigned long i = 0;
+	int j = 0;
+	int m = 0;
+	while (i <= datasize/sizeof(short) && m < N)
+	{
+		frame[j] = data[i];
+		//frame[j] = data[i] * han_window(j, FRAME_LEN);
+		j++;
+
+		if (j == FRAME_LEN)
+		{
+			// 音量(実効値)=sqrt(1/FRAME_LEN * Σframe[n]^2)
+			double sum = 0;
+			for (int n = 0; n < FRAME_LEN; n++)
+			{
+				sum += frame[n] * frame[n];
+			}
+
+			// 音量(FFT係数の合計)
+			/*rdft(FRAME_LEN, 1, frame, ip, w);
+			for (int n = 1; n < FRAME_LEN/2; n++)
+			{
+				sum += power(frame[2*n], frame[2*n+1]);
+			}*/
+
+			vol[m] = sqrt(sum / FRAME_LEN);
+			m++;
+
+			j = 0; // 次フレーム
+		}
+
+		i += 2;
+	}
+
+	// 音量差分(増加のみ)
+	double *diff = new double[N]; // 音量差分
+
+	diff[0] = vol[0];
+	for (int i = 1; i < N; i++)
+	{
+		if (vol[i] - vol[i-1] > 0)
+		{
+			diff[i] = vol[i] - vol[i-1];
+		} else {
+			diff[i] = 0;
+		}
+	}
+
+	const double s = double(fmt->dwSamplesPerSec) / double(FRAME_LEN); // サンプリング周波数
+
+	// テスト用
+	// cos
+	/*for (int i = 0; i < N; i++)
+	{
+		diff[i] = cos(2.0 * M_PI * 2.0 * i / s)*1000;
+	}*/
+	// 擬似インパルス
+	/*for (int i = 0; i < N; i++)
+	{
+		if (cos(2.0 * M_PI * 2.0 * i / s) > 0.999)
+		{
+			diff[i] = 1000;
+		} else {
+			diff[i] = 0;
+		}
+	}*/
+
+	// テンポ解析
+	double *a = new double[240-60+1];
+	double *b = new double[240-60+1];
+	double *r = new double[240-60+1];
+	for (int bpm = 60; bpm <= 240; bpm++)
+	{
+		double a_sum = 0;
+		double b_sum = 0;
+		double f = double(bpm) / 60;
+		for (int n = 0; n < N; n++)
+		{
+			double win = han_window(n, N);
+			a_sum += diff[n] * cos(2.0 * M_PI * f * n / s) * win;
+			b_sum += diff[n] * sin(2.0 * M_PI * f * n / s) * win;
+			// 注意：窓関数を使用しないと端の影響で誤差が出る
+		}
+		double a_tmp = a_sum / N;
+		double b_tmp = b_sum / N;
+		a[bpm-60] = a_tmp;
+		b[bpm-60] = b_tmp;
+		r[bpm-60] = sqrt(power(a_tmp, b_tmp));
+	}
+
+	// ピーク解析
+	int peak_x[3];
+	find_peak3(r, 240-60+1, peak_x);
+
+	double start_n;
+	double beat_gap;
+	for (int idx = 0; idx < 3; idx++)
+	{
+		if (peak_x[idx] < 0)
+		{
+			break;
+		}
+
+		printf("[%d]\n", idx+1);
+
+		int peak_bpm = peak_x[idx] + 60;
+		printf("peak bmp : %d\n", peak_bpm);
+
+		// 位相差
+		double theta = atan2(b[peak_x[idx]], a[peak_x[idx]]);
+		if (theta < 0)
+		{
+			theta += 2.0 * M_PI;
+		}
+		double peak_f = double(peak_bpm) / 60;
+		double start_time = theta / (2.0 * M_PI * peak_f);
+		double start_beat = theta / (2.0 * M_PI);
+		printf("first beat time : %f sec\n", start_time);
+		printf("first beat : %f beat\n", start_beat);
+
+		double ajust_beat = (2.0 * M_PI - theta) / (2.0 * M_PI);
+		int ajust_beat1 = int(ajust_beat*4) % 4;
+		int ajust_beat2 = int(ajust_beat*4*120) % 120;
+		printf("ajust beat for cubase : 1 . 1 . %d . %d\n", ajust_beat1+1, ajust_beat2);
+
+		// 泊位置
+		if (idx == 0)
+		{
+			start_n = int(start_time * s);
+			beat_gap = s / peak_f;
+		}
+	}
+
+
+	//ダイアログの作成
+	HWND hDlg = CreateDialogParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DIALOG1), NULL, DlgProc, 0);
+
+	// 音量表示
+	GetDlgItemRect(hDlg, IDC_PANE1, (RECT&)rcPane1);
+	hdcPane1 = CreateBackBuffer(hDlg, rcPane1.width(), rcPane1.height());
+	PatBlt(hdcPane1, 0, 0, rcPane1.width(), rcPane1.height(), WHITENESS);
+	HPEN hpenBlue = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
+	SelectObject(hdcPane1, hpenBlue);
+	HFONT hFont = (HFONT)GetStockObject(SYSTEM_FONT);
+	SelectObject(hdcPane1, hFont);
+	TextOut(hdcPane1, int(rcPane1.width()/2), 0, L"音量", 2);
+	double y_zoom = 0.005;
+	int y0 = rcPane1.height();
+	MoveToEx(hdcPane1, 0, int(y0 - vol[0]*y_zoom), NULL);
+	for (int x = 0; x < N && x < rcPane1.width(); x++)
+	{
+		LineTo(hdcPane1, x, int(y0 - vol[x]*y_zoom));
+	}
+
+	// 音量差分表示
+	GetDlgItemRect(hDlg, IDC_PANE2, (RECT&)rcPane2);
+	hdcPane2 = CreateBackBuffer(hDlg, rcPane2.width(), rcPane2.height());
+	PatBlt(hdcPane2, 0, 0, rcPane2.width(), rcPane2.height(), WHITENESS);
+	SelectObject(hdcPane2, hpenBlue);
+	SelectObject(hdcPane2, hFont);
+	TextOut(hdcPane2, int(rcPane2.width()/2), 0, L"音量差分", 4);
+	y_zoom = 0.01;
+	y0 = rcPane2.height();
+	MoveToEx(hdcPane2, 0, int(y0 - diff[0]*y_zoom), NULL);
+	for (int x = 0; x < N && x < rcPane2.width(); x++)
+	{
+		LineTo(hdcPane2, x, int(y0 - diff[x]*y_zoom));
+	}
+
+	// 拍位置表示
+	HPEN hpenRed = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+	if (peak_x[0] > 0)
+	{
+		SelectObject(hdcPane2, hpenRed);
+		for (;start_n < rcPane2.width(); start_n += beat_gap)
+		{
+			MoveToEx(hdcPane2, int(start_n), 0, NULL);
+			LineTo(hdcPane2, int(start_n), y0);
+		}
+	}
+	// パターン波表示
+	y0 = rcPane2.height() / 2;
+	y_zoom = rcPane2.height() / sqrt(power(a[peak_x[0]], b[peak_x[0]])) / 2 * 0.5;
+	MoveToEx(hdcPane2, 0, y0, NULL);
+	for (int x = 0; x < N; x++)
+	{
+		double peak_f = double(peak_x[0] + 60) / 60;
+		double sincos = a[peak_x[0]]*cos(2.0 * M_PI * peak_f * x / s) + b[peak_x[0]]*sin(2.0 * M_PI * peak_f * x / s);
+		LineTo(hdcPane2, x, int(y0 - sincos * y_zoom));
+	}
+
+	// テンポ表示
+	GetDlgItemRect(hDlg, IDC_PANE3, (RECT&)rcPane3);
+	hdcPane3 = CreateBackBuffer(hDlg, rcPane3.width(), rcPane3.height());
+	PatBlt(hdcPane3, 0, 0, rcPane3.width(), rcPane3.height(), WHITENESS);
+	SelectObject(hdcPane3, hpenBlue);
+	SelectObject(hdcPane3, hFont);
+	TextOut(hdcPane3, int(rcPane3.width()/2), 0, L"テンポ", 3);
+	y0 = rcPane3.height() - 8;
+	y_zoom = y0 / r[peak_x[0]];
+	MoveToEx(hdcPane3, 0, int(y0 - r[0]*y_zoom), NULL);
+	for (int x = 0; x < 240-60+1; x++)
+	{
+		LineTo(hdcPane3, x, int(y0 - r[x]*y_zoom));
+	}
+
+	// 解析位置表示
+	SelectObject(hdcPane3, hpenRed);
+	for (int idx = 0; idx < 3; idx++)
+	{
+		if (peak_x[idx] > 0)
+		{
+			MoveToEx(hdcPane3, peak_x[idx], y0, NULL);
+			LineTo(hdcPane3, peak_x[idx], y0 - int(r[peak_x[idx]]*y_zoom));
+		}
+	}
+
+	// BMP
+	LOGFONT lf;
+	GetObject(hFont, sizeof(lf), &lf);
+	lf.lfHeight = -8;
+	lf.lfWidth = 0;
+	lf.lfWeight = FW_NORMAL;
+	wcscpy_s(lf.lfFaceName, LF_FACESIZE, L"ＭＳ ゴシック");
+	HFONT hfntBMP = CreateFontIndirect(&lf);
+	SelectObject(hdcPane3, hfntBMP);
+	wchar_t str[16];
+	for (int x = 0; x < 240-60+1; x += 20)
+	{
+		int bmp = x + 60;
+		int len = wsprintf(str, L"%d", bmp);
+		TextOut(hdcPane3, x, y0, str, len);
+	}
+
+	InvalidateRect(hDlg, NULL, FALSE);
+	ShowWindow(hDlg, SW_SHOW);
+	UpdateWindow(hDlg);
+
+	//メッセージループ
+	MSG msg;
+	while(GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	return 0;
+}
+
+//ダイアログプロシージャ
+INT CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+	case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			HDC hdc = BeginPaint(hDlg, &ps);
+			BitBlt(hdc, rcPane1.left, rcPane1.top, rcPane1.width(), rcPane1.height(), hdcPane1, 0, 0, SRCCOPY);
+			BitBlt(hdc, rcPane2.left, rcPane2.top, rcPane2.width(), rcPane2.height(), hdcPane2, 0, 0, SRCCOPY);
+			BitBlt(hdc, rcPane3.left, rcPane3.top, rcPane3.width(), rcPane3.height(), hdcPane3, 0, 0, SRCCOPY);
+			EndPaint(hDlg, &ps);
+			return TRUE;
+		}
+	case WM_CLOSE:
+		DestroyWindow(hDlg);
+		PostQuitMessage(0);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+void GetDlgItemRect(HWND hDlg, int nIDDlgItem, RECT& rc)
+{
+	HWND hItem = GetDlgItem(hDlg, nIDDlgItem);
+	GetWindowRect(hItem, &rc);
+	POINT pt;
+	pt.y = rc.top;
+	pt.x = rc.left;
+	ScreenToClient(hDlg, &pt);
+	rc.bottom = pt.y + rc.bottom - rc.top;
+	rc.top = pt.y;
+	rc.right = pt.x + rc.right - rc.left;
+	rc.left = pt.x;
+}
+
+HDC CreateBackBuffer(HWND hWnd, const int width, const int height)
+{
+	HDC hDC = GetDC(hWnd);
+	HBITMAP hBmp = CreateCompatibleBitmap(hDC, width, height);
+	HDC hdcBack = CreateCompatibleDC(hDC);
+	SelectObject(hdcBack, hBmp);
+	return hdcBack;
+}
+
+void find_peak3(const double* a, size_t size, int *max_idx)
+{
+	max_idx[0] = -1;
+	max_idx[1] = -1;
+	max_idx[2] = -1;
+	double dy = 0;
+	for (size_t i = 1; i < size; ++i)
+	{
+		double dy_pre = dy;
+		dy = a[i] - a[i-1];
+		if (dy_pre > 0 && dy <= 0)
+		{
+			if (max_idx[0] < 0 || a[i-1] > a[max_idx[0]])
+			{
+				max_idx[2] = max_idx[1];
+				max_idx[1] = max_idx[0];
+				max_idx[0] = i-1;
+			}
+			else if (max_idx[1] < 0 || a[i-1] > a[max_idx[1]])
+			{
+				max_idx[2] = max_idx[1];
+				max_idx[1] = i-1;
+			}
+			else if (max_idx[2] < 0 || a[i-1] > a[max_idx[2]])
+			{
+				max_idx[2] = i-1;
+			}
+		}
+	}
+}

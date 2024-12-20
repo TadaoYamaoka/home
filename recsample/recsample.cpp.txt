@@ -1,0 +1,452 @@
+#define _USE_MATH_DEFINES
+
+#include <stdio.h>
+#include <math.h>
+#include <dshow.h>
+#include <qedit.h>
+#include <deque>//STL
+#include "resource.h"//dialog resource
+#pragma comment(lib, "strmiids.lib")
+
+//CSampleGrabberCBのBufferCB又はSampleCBを決定する為のフラグ
+const int CBTYPE = 1;
+
+const int NUM = 4;
+const int DEV = 2; // 間引く数
+const int LEN = 1536/4/DEV;
+const int MAX = LEN*NUM;
+short d[MAX];
+double f[MAX];
+double F[MAX];
+
+void fourier(const short *d)
+{
+    // ハミング窓
+    for (int n = 0; n < MAX; n++)
+    {
+        /*double x = double(n)/MAX;
+        f[n] = ( 0.54 - 0.46*cos(2*M_PI*x) ) * d[n];*/
+        f[n] = d[n];
+    }
+
+    for (int n = 0; n < MAX/2; n++) // 無効部分を捨てる
+    {
+        double ReF = 0;
+        double ImF = 0;
+
+        for (int k = 0; k < MAX; k++)
+        {
+            ReF += double(f[k]) * cos(2*M_PI*k*n/MAX);
+            ImF +=-double(f[k]) * sin(2*M_PI*k*n/MAX);
+        }
+        F[n] = abs(ReF) + abs(ImF);
+    }
+}
+
+//波形を取るためのクラス
+//?http://msdn.microsoft.com/ja-jp/library/cc369538.aspx?
+struct CSampleGrabberCB : public ISampleGrabberCB
+{
+    //ペン配列の使用用途
+    enum E_PenIndex
+    {
+        EPI_Wave = 0,//波形の色
+        EPI_Center = 1,//センターラインの色
+        EPI_Total = 2//配列個数
+    };
+    //ウェーブの音声をしまう構造
+    struct WaveSample
+    {
+        WaveSample(short __left, short __right) : left(__left), right(__right){ }
+        ~WaveSample(){ }
+        short left;//左
+        short right;//右
+    };
+    //LIFOバッファ
+    typedef std::deque<WaveSample> QueWaveSample;
+
+    //ダイアログプロシージャ
+    static INT CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    {
+        if(uMsg == WM_CLOSE)
+        {
+            ::DestroyWindow(hDlg);
+            ::PostQuitMessage(0);
+        }
+        return FALSE;
+    }
+    //コンストラクタ
+    CSampleGrabberCB() : m_cRef(0), m_hDlg(NULL), m_hBmpBackBuffer(NULL)
+    {
+        //適当にペンを作成する
+        const COLORREF aColors[EPI_Total] = {RGB(255, 128, 0), RGB(128, 255, 128)};
+        for(int i = 0; i < EPI_Total; ++i)
+            m_arrhPen[i] = ::CreatePen(PS_SOLID, 1, aColors[i]);
+    }
+    //デストラクタ
+    ~CSampleGrabberCB()
+    {
+        for(int i = 0; i < EPI_Total; ++i)
+            ::DeleteObject(m_arrhPen[i]);
+
+        ::DeleteObject(m_hBmpBackBuffer);
+    }
+    //ダイアログを開く
+    HWND OpenDialog()
+    {
+        if(m_hDlg)return NULL;
+        //ダイアログの作成
+        m_hDlg = ::CreateDialogParam(::GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DIALOG1), NULL, DlgProc, 0);
+        //クライアント領域に合わせてバックバッファを作成する
+        RECT rc = {0};
+        ::GetClientRect(m_hDlg, &rc);
+        m_hBmpBackBuffer = ::CreateBitmap(rc.right, rc.bottom, 1, 32, NULL);
+        //ダイアログの表示
+        ::ShowWindow(m_hDlg, SW_SHOW);
+        return m_hDlg;
+    }
+private:
+    //ココは今のところ使わない
+    HRESULT WINAPI QueryInterface(REFIID refIID, LPVOID* ppUnk)
+    {
+        return S_OK;
+    }
+    //参照カウンタを上げる
+    ULONG WINAPI AddRef()
+    {
+        return ++m_cRef;
+    }
+    //参照カウンタを下げる
+    ULONG WINAPI Release()
+    {
+        if(--m_cRef)return m_cRef;
+        //参照カウンタが0になったので自分を開放する
+        delete this;
+        //メンバに触ってはいけない
+        return 0;
+    }
+    //CBTYPEが1の時、ココが呼ばれ続ける
+    LONG WINAPI BufferCB(double SampleTime/*大体0.03秒単位だった*/, BYTE* pBuf, long bufLen/*此れを無視する*/)
+    {
+        //16bitステレオ
+        const short* pWaveData = (short*)pBuf;
+
+        // バッファをため込む
+        static unsigned int c = 0;
+        for (int i = 0; i < bufLen/4/DEV; i++)
+        {
+            d[LEN*c + i] = pWaveData[i*2*DEV]; // 間引いてため込む
+        }
+        c++;
+        if (c == NUM) {
+            c = 0;
+        } else {
+            return S_OK;
+        }
+        DWORD t = GetTickCount();
+
+        //バックバッファのサイズを取る（ダイアログのクライアント領域でもある）
+        const SIZE sz = this->GetBackBufferSize();
+        //波形描写の準備
+        HDC hDCBackBuffer = ::CreateCompatibleDC(NULL);
+        ::SelectObject(hDCBackBuffer, m_hBmpBackBuffer);
+        ::SelectObject(hDCBackBuffer, m_arrhPen[EPI_Wave]);
+        ::PatBlt(hDCBackBuffer, 0, 0, sz.cx, sz.cy, BLACKNESS);
+        //LIFOバッファのサイズがダイアログの幅より大きくなったら、先頭を捨てる
+        if(m_queWaveSample.size() > sz.cx)
+            m_queWaveSample.pop_front();
+        //ウェーブデータをLIFOバッファにプッシュする　-32768 ～ +32767まで（画面に納めるために256で割って小さくする）
+        //[0]が左の音声、[1]が右の音声
+        m_queWaveSample.push_back(WaveSample(pWaveData[0] / 256, pWaveData[1] / 256));
+        /*for (int i = 0; i < bufLen/2; i+=96)
+        {
+            m_queWaveSample.push_back(WaveSample(pWaveData[i] / 256, pWaveData[i+1] / 256));
+        }*/
+        //LIFOバッファを走査してウェーブデータを描く
+        int x = 0;
+        for(QueWaveSample::iterator it = m_queWaveSample.begin(); it != m_queWaveSample.end(); ++it, ++x)
+        {
+            //画面の右～左へスクロールさせる（再生したての時しか意味はない）
+            const int xPos = sz.cx - m_queWaveSample.size() + x;
+            //波形を縦に書く
+            const POINT aPt[] = {{xPos, (sz.cy / 4) - it->left}, {xPos, (sz.cy / 4) /*+ it->right*/}};
+            ::Polyline(hDCBackBuffer, aPt, 2);
+        }
+        //センターラインを引く
+        ::SelectObject(hDCBackBuffer, m_arrhPen[EPI_Center]);
+        const POINT aPt[] = {{0, sz.cy / 4}, {sz.cx, sz.cy / 4}};
+        ::Polygon(hDCBackBuffer, aPt, 2);
+
+        // SampleTime、bufLen表示
+        wchar_t textbuf[100];
+        static DWORD t_old = 0;
+        int len = swprintf(textbuf, L"%2d, %d : %6d, %6d", t - t_old, bufLen, pWaveData[0], pWaveData[1]);
+        ::TextOut(hDCBackBuffer, 0, 0, textbuf, len);
+
+        // フーリエ変換
+        fourier(d);
+        for (int x = 0; x < MAX/2; x++) // 無効部分を捨てる
+        {
+            const POINT aPt[] = {{x, sz.cy}, {x, sz.cy - (F[x] / 2048)}};
+            ::Polyline(hDCBackBuffer, aPt, 2);
+        }
+        
+        //バックバッファをダイアログにフリップする
+        HDC hDCDialog = ::GetDC(m_hDlg);
+        ::BitBlt(hDCDialog, 0, 0, sz.cx, sz.cy, hDCBackBuffer, 0, 0, SRCCOPY);
+        ::ReleaseDC(m_hDlg, hDCDialog);
+        ::DeleteDC(hDCBackBuffer);
+        t_old = t;
+        return S_OK;
+    }
+    //CBTYPEが0の時、ココが呼ばれ続ける
+    HRESULT WINAPI SampleCB(double SampleTime, IMediaSample *pSample)
+    {
+        wprintf(L"%d:%d,", pSample->GetSize(), pSample->GetActualDataLength());
+        return S_OK;
+    }
+    //バックバッファの幅と高さを取る
+    const SIZE GetBackBufferSize() const
+    {
+        BITMAP bitmap = {0};
+        ::GetObject(m_hBmpBackBuffer, sizeof(bitmap), &bitmap);
+        const SIZE sz = {bitmap.bmWidth, bitmap.bmHeight};
+        return sz;
+    }
+
+    ULONG m_cRef;//参照カウンタ
+    HWND m_hDlg;//ダイアログハンドル
+    HBITMAP m_hBmpBackBuffer;//波形描写用のバックバッファ
+    HPEN m_arrhPen[EPI_Total];//ペンの配列
+    QueWaveSample m_queWaveSample;//波形を溜め込むLIFOバッファ
+};
+
+HRESULT GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, IPin **ppPin)
+{
+    IEnumPins  *pEnum = NULL;
+    IPin       *pPin = NULL;
+    HRESULT    hr;
+
+    if (ppPin == NULL)
+    {
+        return E_POINTER;
+    }
+
+    hr = pFilter->EnumPins(&pEnum);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    while(pEnum->Next(1, &pPin, 0) == S_OK)
+    {
+        PIN_DIRECTION PinDirThis;
+        hr = pPin->QueryDirection(&PinDirThis);
+        if (FAILED(hr))
+        {
+            pPin->Release();
+            pEnum->Release();
+            return hr;
+        }
+        if (PinDir == PinDirThis)
+        {
+            // Found a match. Return the IPin pointer to the caller.
+            *ppPin = pPin;
+            pEnum->Release();
+            return S_OK;
+        }
+        // Release the pin for the next time through the loop.
+        pPin->Release();
+    }
+    // No more pins. We did not find a match.
+    pEnum->Release();
+    return E_FAIL;
+}
+
+int wmain()
+{
+    //必要なポインタ等
+    IGraphBuilder *pGraphBuilder = NULL;
+    IMediaControl *pMediaControl = NULL;
+    IBaseFilter *pSampleGrabberFilter = NULL;
+    ISampleGrabber *pSampleGrabber = NULL;
+    AM_MEDIA_TYPE am_media_type = {0};
+
+    //COMを初期化
+    CoInitialize(NULL);
+
+    //FilterGraphを生成
+    CoCreateInstance(CLSID_FilterGraph,NULL,CLSCTX_INPROC,IID_IGraphBuilder,(LPVOID *)&pGraphBuilder);
+
+    //SampleGrabber(Filter)を生成
+    CoCreateInstance(CLSID_SampleGrabber,NULL,CLSCTX_INPROC,IID_IBaseFilter,(LPVOID *)&pSampleGrabberFilter);
+
+    //FilterからISampleGrabberインターフェースを取得します
+    pSampleGrabberFilter->QueryInterface(IID_ISampleGrabber, (LPVOID *)&pSampleGrabber);
+
+    //ウェーブに変換させる
+    am_media_type.majortype = MEDIATYPE_Audio;
+    am_media_type.subtype = MEDIASUBTYPE_PCM;
+    am_media_type.formattype = FORMAT_WaveFormatEx;
+    pSampleGrabber->SetMediaType(&am_media_type);
+
+    //GraphにSampleGrabber Filterを追加
+    pGraphBuilder->AddFilter(pSampleGrabberFilter, L"Sample Grabber");
+
+    //コールバッククラスの設定
+    //?http://msdn.microsoft.com/ja-jp/library/cc369545.aspx?
+    CSampleGrabberCB* pDialog = new CSampleGrabberCB();
+    pSampleGrabber->SetCallback(pDialog, CBTYPE);
+
+    //MediaControlインターフェース取得
+    pGraphBuilder->QueryInterface(IID_IMediaControl,(LPVOID *)&pMediaControl);
+
+    //mp3をロードする
+    //pMediaControl->RenderFile(L"test.mp3");
+
+    //メディアタイプの確認
+    //pSampleGrabber->GetConnectedMediaType(&am_media_type);
+    //WAVEFORMATEX* wav = (WAVEFORMATEX*)am_media_type.pbFormat;
+
+    // WDM ストリームフィルター
+    ICreateDevEnum *pSysDevEnum = NULL;
+    CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER,
+                     IID_ICreateDevEnum, (void **)&pSysDevEnum);
+
+    IEnumMoniker *pEnumCat = NULL;
+    pSysDevEnum->CreateClassEnumerator(AM_KSCATEGORY_CAPTURE, &pEnumCat, 0);
+
+    IMoniker *pMoniker = NULL;
+    ULONG cFetched;
+    while(pEnumCat->Next(1, &pMoniker, &cFetched) == S_OK)
+    {
+        IPropertyBag *pPropBag;
+        pMoniker->BindToStorage(0, 0, IID_IPropertyBag,
+                                (void **)&pPropBag);
+        // To retrieve the filter's friendly name, do the following:
+        VARIANT varName;
+        VariantInit(&varName);
+        pPropBag->Read(L"FriendlyName", &varName, 0);
+
+        wprintf(L"%s\n", varName.bstrVal);
+
+        // To create an instance of the filter, do the following:
+        IBaseFilter *pFilter;
+        pMoniker->BindToObject(NULL, NULL, IID_IBaseFilter,
+                               (void**)&pFilter);
+        // Now add the filter to the graph.
+        //Remember to release pFilter later.
+        if (lstrcmp(varName.bstrVal, L"Realtek HD Audio Input") == 0)
+        {
+            HRESULT hr;
+            pGraphBuilder->AddFilter(pFilter, L"Realtek HD Audio Input");
+            IPin *pOutPin, *pInPin;
+            hr = GetPin(pFilter, PINDIR_OUTPUT, &pOutPin);
+            if (hr == E_FAIL) {
+                wprintf(L"GetPin eror\n");
+                return 1;
+            }
+            hr = GetPin(pSampleGrabberFilter, PINDIR_INPUT, &pInPin);
+            if (hr == E_FAIL) {
+                wprintf(L"GetPin eror\n");
+                return 1;
+            }
+            hr = pGraphBuilder->Connect(pOutPin, pInPin);
+            if (hr != S_OK) {
+                wprintf(L"Connect eror\n");
+                return 1;
+            }
+
+            // サンプリングレート表示
+            AM_MEDIA_TYPE mtsrc;
+	        hr = pOutPin->ConnectionMediaType(&mtsrc);
+            wprintf(L"%d, %d, %d, %d\n",
+                    ((WAVEFORMATEX*)(mtsrc.pbFormat))->nChannels,
+                    ((WAVEFORMATEX*)(mtsrc.pbFormat))->nSamplesPerSec,
+                    ((WAVEFORMATEX*)(mtsrc.pbFormat))->wBitsPerSample,
+                    mtsrc.lSampleSize);
+
+            // サンプリングレート設定
+            IAMStreamConfig *pAMStreamCfg = NULL;
+            hr = pOutPin->QueryInterface(IID_IAMStreamConfig, (void **)&pAMStreamCfg);
+            if (hr == E_NOINTERFACE) {
+                wprintf(L"error\n");
+                return 1;
+            }
+            WAVEFORMATEX   wf = {0};
+            wf.nChannels       = 2;
+            wf.nSamplesPerSec  = 8000;
+            wf.wBitsPerSample  = 16;
+            wf.nBlockAlign     = wf.nChannels * wf.wBitsPerSample / 8;
+            wf.nAvgBytesPerSec = wf.nSamplesPerSec * wf.nBlockAlign;
+            wf.wFormatTag      = WAVE_FORMAT_PCM;
+        
+            AM_MEDIA_TYPE   mt = {0};
+            mt.majortype         = MEDIATYPE_Audio;
+            mt.subtype           = MEDIASUBTYPE_PCM;
+            mt.bFixedSizeSamples = TRUE;
+            mt.lSampleSize       = 4;
+            mt.formattype        = FORMAT_WaveFormatEx;
+            mt.cbFormat          = sizeof(WAVEFORMATEX);
+            mt.pbFormat          = (BYTE *)&wf;
+        
+            hr = pAMStreamCfg->SetFormat(&mt);
+            if (FAILED(hr))
+            {
+        		wprintf(L"error\n");
+        		return 1;
+            }
+            pAMStreamCfg->Release();
+
+            // サンプリングレート表示
+	        hr = pOutPin->ConnectionMediaType(&mtsrc);
+            wprintf(L"%d, %d, %d, %d\n",
+                    ((WAVEFORMATEX*)(mtsrc.pbFormat))->nChannels,
+                    ((WAVEFORMATEX*)(mtsrc.pbFormat))->nSamplesPerSec,
+                    ((WAVEFORMATEX*)(mtsrc.pbFormat))->wBitsPerSample,
+                    mtsrc.lSampleSize);
+
+            pOutPin->Release();
+            pInPin->Release();
+        }
+
+        VariantClear(&varName);
+        pPropBag->Release();
+        pFilter->Release();
+        pMoniker->Release();
+    }
+    pEnumCat->Release();
+
+    pSysDevEnum->Release();
+
+
+    //再生開始
+    pDialog->OpenDialog();
+    pMediaControl->Run();
+
+    //メッセージループ
+    MSG msg;
+    while(::GetMessage(&msg, NULL, 0, 0))
+    {
+        ::TranslateMessage(&msg);
+        ::DispatchMessage(&msg);
+    }
+
+    //再生を止める
+    pMediaControl->Stop();
+    IMediaEvent *pEvent;
+    pGraphBuilder->QueryInterface(IID_IMediaEvent,(LPVOID *)&pEvent);
+    long evCode;
+    pEvent->WaitForCompletion(INFINITE, &evCode);
+
+    //解放
+    pSampleGrabber->SetCallback(NULL, CBTYPE);
+    pSampleGrabber->Release();
+    pSampleGrabberFilter->Release();
+    pMediaControl->Release();
+    pGraphBuilder->Release();
+
+    //COM終了
+    CoUninitialize();
+
+    return msg.wParam;;
+}
