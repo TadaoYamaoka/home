@@ -1,55 +1,55 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head><title></title>
-<meta content="text/html; charset=shift_jis" http-equiv="Content-Type">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <meta name="GENERATOR" content="MSHTML 8.00.6001.18904"></head>
 <body>
-<div align="right"><!-- shinobi ct2 --><script type="text/javascript" src="http://ct2.yamagomori.com/sc/1422187"></script><noscript><a href="http://ct2.yamagomori.com/gg/1422187" target="_blank"><img border="0" alt="�J�E���^�[" src="http://ct2.yamagomori.com/ll/1422187"></a></noscript> <!-- /shinobi ct2 --></div>
-<h1>C/C++����Ŏ��ȑ��֊֐�(ACF)�ɂ���{���g����͂��s���T���v���v���O����</h1>
-<p>�X�V�����F2010/5/3</p>
-<p>C/C++����Ŏ��ȑ��֊֐�(ACF)�ɂ���{���g����͂��s���T���v���v���O�����ł��B<br>
+<div align="right"><!-- shinobi ct2 --><script type="text/javascript" src="http://ct2.yamagomori.com/sc/1422187"></script><noscript><a href="http://ct2.yamagomori.com/gg/1422187" target="_blank"><img border="0" alt="カウンター" src="http://ct2.yamagomori.com/ll/1422187"></a></noscript> <!-- /shinobi ct2 --></div>
+<h1>C/C++言語で自己相関関数(ACF)により基本周波数解析を行うサンプルプログラム</h1>
+<p>更新日時：2010/5/3</p>
+<p>C/C++言語で自己相関関数(ACF)により基本周波数解析を行うサンプルプログラムです。<br>
 <br>
-��͑Ώۂ̉����t�@�C���́A<a href="../cepstrum/cepstrum.html">�P�v�X�g�����@</a>�Ƃ̔�r�̂���<a href="http://shower.human.waseda.ac.jp/~m-kouki/pukiwiki_public/73.html#c6ecefea">����</a>�Ō��J����Ă���<font color="#ff0000">a.wav</font>���g�p���܂����B<br>
-�T���v���̂��߁A�Ή����Ă���wav�t�@�C���̃t�H�[�}�b�g�́A�`�����l���������m�����ŁA�r�b�g�^�T���v����32bit�݂̂ł��B<br>
-�܂��AFFT�̃\�[�X�́A<a href="http://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmndl.html">����</a>�̃\�[�X���g�p���Ă��܂��B 
+解析対象の音声ファイルは、<a href="../cepstrum/cepstrum.html">ケプストラム法</a>との比較のため<a href="http://shower.human.waseda.ac.jp/~m-kouki/pukiwiki_public/73.html#c6ecefea">ここ</a>で公開されている<font color="#ff0000">a.wav</font>を使用しました。<br>
+サンプルのため、対応しているwavファイルのフォーマットは、チャンネル数がモノラルで、ビット／サンプルが32bitのみです。<br>
+また、FFTのソースは、<a href="http://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmndl.html">ここ</a>のソースを使用しています。 
 
-<h3>�T���v���\�[�X</h3>�T���v���\�[�X�̎�v������<a href="#source">���̕�</a>�ɍڂ��Ă��܂��B�S�\�[�X��<a href="acf.cpp">������</a>�ɂ���܂��B�r���h�ς݂̎��s�t�@�C����Visual C++ 2008 Express 
-Edition�p�̃v���W�F�N�g��<a href="acf.zip">������</a>����_�E�����[�h�ł��܂��B 
-<h3>���</h3>
-<p>���ȑ��֊֐��̒�`�́Ar(m) = ��[n=0..N-m-1] f(n)�Ef(n+m) (0 &lt;= m &lt;= 
-N-1)�ŗ^�����܂��B������`�ǂ���v�Z�����荂���ȕ��@�Ƃ��āAFFT�ɂ�蓾��ꂽ�p���[�X�y�N�g�����tFFT���邱�Ƃɂ���Ă����ȑ��֊֐��𓾂邱�Ƃ��ł��܂��B�i�E�B�i�[�E�q���`���̒藝�j<br>
+<h3>サンプルソース</h3>サンプルソースの主要部分は<a href="#source">下の方</a>に載せています。全ソースは<a href="acf.cpp">こちら</a>にあります。ビルド済みの実行ファイルとVisual C++ 2008 Express 
+Edition用のプロジェクトは<a href="acf.zip">こちら</a>からダウンロードできます。 
+<h3>解説</h3>
+<p>自己相関関数の定義は、r(m) = Σ[n=0..N-m-1] f(n)・f(n+m) (0 &lt;= m &lt;= 
+N-1)で与えられます。これを定義どおり計算するより高速な方法として、FFTにより得られたパワースペクトルを逆FFTすることによっても自己相関関数を得ることができます。（ウィナー・ヒンチンの定理）<br>
 <br>
-�T���v���v���O�����ł�2�̕��@�ŁA���ȑ��֊֐������߂Ă����̌��ʂ̔�r���s���Ă��܂��B�܂��A���s���x�̔�r���s���Ă��܂��B���s���x�̔�r�p�̃\�[�X��<a href="acf_time.cpp">������</a>�ɂ���܂��B</p>
-<h3>���s����</h3>
-<p>���s���ʂ́A���}�̂悤�ɂȂ�܂��B </p>
+サンプルプログラムでは2つの方法で、自己相関関数を求めてそれらの結果の比較を行っています。また、実行速度の比較も行っています。実行速度の比較用のソースは<a href="acf_time.cpp">こちら</a>にあります。</p>
+<h3>実行結果</h3>
+<p>実行結果は、下図のようになります。 </p>
 <p align="center"><img border="0" alt="" src="acf.png" width="717" height="490"><br>
 <br>
-���s����</p>
+実行結果</p>
 <p><br>
-�p���[�X�y�N�g���̋tFFT���狁�߂����ȑ��֊֐��ƁA��`�ʂ�v�Z�������ȑ��֊֐��ł܂�����������{���g�����Z�o����܂����B<br>
-<a href="../cepstrum/cepstrum.html">�P�v�X�g�����@</a>�ɂ��Z�o������{���g���Ƃ���v���Ă��܂��B<br>
+パワースペクトルの逆FFTから求めた自己相関関数と、定義通り計算した自己相関関数でまったく同じ基本周波数が算出されました。<br>
+<a href="../cepstrum/cepstrum.html">ケプストラム法</a>により算出した基本周波数とも一致しています。<br>
 <br>
-���ɁA���s���Ԃ��r�������ʂ́A�ȉ��̂Ƃ���ł��B</p>
-<p align="center">&nbsp;���s����(1,000����s���AFFT����2048�ACore2Quad 2.8GHz�ő���) 
+次に、実行時間を比較した結果は、以下のとおりです。</p>
+<p align="center">&nbsp;実行時間(1,000回実行時、FFT次数2048、Core2Quad 2.8GHzで測定) 
 <table border="1" cellspacing="0" cellpadding="2">
   <tbody>
   <tr>
-    <td>�p���[�X�y�N�g���̋tFFT����v�Z</td>
+    <td>パワースペクトルの逆FFTから計算</td>
     <td>
       <p align="right">15 ms</p></td>
   </tr>
   <tr>
-    <td>��`�ʂ�v�Z</td>
+    <td>定義通り計算</td>
     <td>
       <p align="right">3,563 ms</p></td></tr></tbody></table></p>
-<p>�p���[�X�y�N�g���̋tFFT����v�Z���������A�� 238 �{�����v�Z�ł��Ă��܂��B</p>
-<h3>�⑫</h3>
-<p>���֐����g�p���Ȃ��Ŏ��ȑ��֊֐����v�Z�����ꍇ�A��{���g���̎Z�o���ł��邩�m�F���܂����B���ʂ͉��}�̒ʂ�ł��B 
+<p>パワースペクトルの逆FFTから計算した方が、約 238 倍早く計算できています。</p>
+<h3>補足</h3>
+<p>窓関数を使用しないで自己相関関数を計算した場合、基本周波数の算出ができるか確認しました。結果は下図の通りです。 
 <p align="center"><img border="0" alt="" src="acf2.png" width="717" height="490"><br>
 <br>
-���֐��Ȃ��̎��s����</p>
-<p>���֐���K�p���Ȃ��Ă��A������x���������ʂ��Z�o�ł��܂����B���ȑ��֊֐��ɂ����@�̓P�v�X�g�����@�Ɣ�r���āA���֐��͂���قǏd�v�ł͂Ȃ��悤�ł��B����ł��A���֐����g�p�����@���A��萳�������ʂ������Ă��܂��B 
+窓関数なしの実行結果</p>
+<p>窓関数を適用しなくても、ある程度正しい結果が算出できました。自己相関関数による方法はケプストラム法と比較して、窓関数はそれほど重要ではないようです。それでも、窓関数を使用した法が、より正しい結果が得られています。 
 </p>
-<h3><a name="source"></a>��v�����̃\�[�X</h3>
+<h3><a name="source"></a>主要部分のソース</h3>
 <div style="BORDER-BOTTOM: gray 3px solid; BORDER-LEFT: gray 3px solid; BORDER-TOP: gray 3px solid; BORDER-RIGHT: gray 3px solid"><pre><code>
 HANDLE hFile = CreateFile(L"a.wav", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
@@ -69,23 +69,23 @@ DWORD wav_length = data.chunkSize/sizeof(float);
 float *wav = new float[wav_length];
 ReadFile(hFile, wav, data.chunkSize, &amp;readsize, NULL);
 
-int center = wav_length/2; // ���S�̃T���v���ԍ�
+int center = wav_length/2; // 中心のサンプル番号
 
-double cuttime = 0.046440; // �؂�o������[s]
+double cuttime = 0.046440; // 切り出す長さ[s]
 int wavdata_length = int(cuttime/2*Fs)*2;
 double *wavdata = new double[fftsize];
 double *wavdata2 = new double[fftsize];
 float *p_wav = wav + center - wavdata_length/2 - 1;
 for (int i = 0; i &lt; fftsize; ++i, ++p_wav)
 {
-	// �n�j���O��
+	// ハニング窓
 	wavdata[i] = han_window(i, wavdata_length) * double(*p_wav);
-	wavdata2[i] = wavdata[i]; // �R�s�[��ێ�
+	wavdata2[i] = wavdata[i]; // コピーを保持
 }
 
-rdft(fftsize, 1, wavdata, ip, w); // ���U�t�[���G�ϊ�
+rdft(fftsize, 1, wavdata, ip, w); // 離散フーリエ変換
 
-double Pdft[fftsize/2+1]; // �p���[�X�y�N�g��
+double Pdft[fftsize/2+1]; // パワースペクトル
 Pdft[0] = power(wavdata[0], 0);;
 Pdft[fftsize/2] = power(wavdata[1], 0);
 for (int i = 1; i &lt; fftsize/2; ++i)
@@ -93,7 +93,7 @@ for (int i = 1; i &lt; fftsize/2; ++i)
 	Pdft[i] = power(wavdata[i*2], wavdata[i*2+1]);
 }
 
-// �p���[�X�y�N�g�����玩�ȑ��֊֐��ɕϊ�
+// パワースペクトルから自己相関関数に変換
 double *acf = new double [fftsize];
 for (int i = 0; i &lt; fftsize/2; ++i)
 {
@@ -101,18 +101,18 @@ for (int i = 0; i &lt; fftsize/2; ++i)
 	acf[i*2+1] = 0.0;
 }
 acf[1] = Pdft[fftsize/2];
-rdft(fftsize, -1, acf, ip, w); // �t�t�[���G�ϊ�
+rdft(fftsize, -1, acf, ip, w); // 逆フーリエ変換
 for (int i = 0; i &lt; fftsize/2; ++i)
 {
 	acf[i] *= 2.0 / fftsize;
 }
-// ��{���g���ɕϊ�
+// 基本周波数に変換
 int max_n = find_peak(acf, fftsize/2);
 double peakQuefrency = 1.0 / Fs * max_n;
 double f0 = 1.0 / peakQuefrency;
 
 
-// ���ȑ��֊֐����v�Z
+// 自己相関関数を計算
 double *acf2 = new double[fftsize];
 ZeroMemory(acf2, sizeof(double)*fftsize);
 for (int m = 0; m &lt; fftsize; ++m)
@@ -122,10 +122,10 @@ for (int m = 0; m &lt; fftsize; ++m)
 		acf2[m] += wavdata2[n] * wavdata2[n+m];
 	}
 }
-// ��{���g���ɕϊ�
+// 基本周波数に変換
 max_n = find_peak(acf2, fftsize/2);
 peakQuefrency = 1.0 / Fs * max_n;
 f0 = 1.0 / peakQuefrency;
 </code></pre></div>
 <hr>
-<a href="http://hp.vector.co.jp/authors/VA046927/">�g�b�v�y�[�W��</a> </body></html>
+<a href="../">トップページへ</a> </body></html>

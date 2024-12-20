@@ -1,68 +1,68 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head>
 <title></title>
- <meta content="text/html; charset=shift_jis" http-equiv="Content-Type">
+ <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 </head>
 <body>
 <div align="right">
 <script type="text/javascript" src="http://ct2.syanari.com/sc/1426573"></script><noscript><a href="http://ct2.syanari.com/gg/1426573" target="_blank">
-<img src="http://ct2.syanari.com/ll/1426573" alt="�J�E���^�[" border="0"></a></noscript></div>
+<img src="http://ct2.syanari.com/ll/1426573" alt="カウンター" border="0"></a></noscript></div>
 
-<h1>C/C++����ŃK�{�[���E�F�[�u���b�g�ϊ��ɂ�莞�Ԏ��g����͂��s���T���v���v���O����</h1>
+<h1>C/C++言語でガボールウェーブレット変換により時間周波数解析を行うサンプルプログラム</h1>
 
-<p>�X�V�����F2010/5/21</p>
+<p>更新日時：2010/5/21</p>
 
-<p>C/C++����ŃK�{�[���E�F�[�u���b�g�ϊ��ɂ�莞�Ԏ��g����͂��s���T���v���v���O�����ł��B</p>
+<p>C/C++言語でガボールウェーブレット変換により時間周波数解析を行うサンプルプログラムです。</p>
 
-<p>��͑Ώۂ̉����t�@�C���́A<a href="http://shower.human.waseda.ac.jp/%7Em-kouki/pukiwiki_public/73.html#c6ecefea">����</a>�Ō��J����Ă���<font color="#ff0000">a.wav</font>���g�p���܂����B<br>
-�T���v���̂��߁A�Ή����Ă���wav�t�@�C���̃t�H�[�}�b�g�́A�`�����l���������m�����ŁA�r�b�g�^�T���v����32bit�݂̂ł��B </p>
+<p>解析対象の音声ファイルは、<a href="http://shower.human.waseda.ac.jp/%7Em-kouki/pukiwiki_public/73.html#c6ecefea">ここ</a>で公開されている<font color="#ff0000">a.wav</font>を使用しました。<br>
+サンプルのため、対応しているwavファイルのフォーマットは、チャンネル数がモノラルで、ビット／サンプルが32bitのみです。 </p>
 
-<h3>�T���v���\�[�X</h3>
+<h3>サンプルソース</h3>
 
-<p>�T���v���\�[�X�̎�v������<a href="#source">���̕�</a>�ɍڂ��Ă��܂��B�S�\�[�X��<a href="gabor_wavelet.cpp">������</a>�ɂ���܂��B�r���h�ς݂̎��s�t�@�C����Visual C++ 2008 Express Edition�p�̃v���W�F�N�g��<a href="gabor_wavelet.zip">������</a>����_�E�����[�h�ł��܂��B</p>
+<p>サンプルソースの主要部分は<a href="#source">下の方</a>に載せています。全ソースは<a href="gabor_wavelet.cpp">こちら</a>にあります。ビルド済みの実行ファイルとVisual C++ 2008 Express Edition用のプロジェクトは<a href="gabor_wavelet.zip">こちら</a>からダウンロードできます。</p>
 
-<h3>���</h3>
+<h3>解説</h3>
 
-<p>�K�{�[���E�F�[�u���b�g�ϊ��̒�`�́A�����ŗ^�����܂��B</p>
+<p>ガボールウェーブレット変換の定義は、次式で与えられます。</p>
 
 <p style="margin: 40px;"><img alt="" src="gabor_formula1.png" border="0" height="44" width="266"><br>
 <img alt="" src="gabor_formula2.png" border="0" height="38" width="164"> </p>
 
-<p>�p�����[�^ a �� b �͂��ꂼ����g���̋t���A���ԂɑΉ����܂��B�Ђ͒萔�ŁA�Ђ�傫���Ƃ�Ǝ��g���̕��z�����m�ɂȂ�A�������Ƃ�Ǝ��ԓI�ȕω������m�ɂȂ�܂��B�T���v���v���O�����ł́A��=1�Ƃ��Ă��܂��B�ւ͊p���x�ŁAa �����g���̋t���Ƃ���ꍇ�A��=2�� �ł��B</p>
+<p>パラメータ a と b はそれぞれ周波数の逆数、時間に対応します。σは定数で、σを大きくとると周波数の分布が正確になり、小さくとると時間的な変化が正確になります。サンプルプログラムでは、σ=1としています。ωは角速度で、a を周波数の逆数とする場合、ω=2π です。</p>
 
-<p>�T���v�����O���ꂽ���U�f�[�^�̏ꍇ�A����t��t=m/Fs�im�F�T���v���ԍ��AFs�F�T���v�����O���g���j�ŕϊ����܂��B</p>
+<p>サンプリングされた離散データの場合、時間tはt=m/Fs（m：サンプル番号、Fs：サンプリング周波数）で変換します。</p>
 
-<p>�ϕ��͈͂͏㎮�ł͑S��ԂƂȂ��Ă��܂����A�K�{�[���̃}�U�[�E�F�[�u���b�g(�㎮��(t))�́A���}�̒ʂ� t=0 �𒆐S�ɂ��Đ�����������0�ɑQ�߂��Ă��܂��B���̂��߁A�ق�0�ɂȂ�܂ł̋�Ԃ݂̂�ϕ��͈͂Ƃ��Ă����ۂ͖�肠��܂���B�T���v���v���O�����ł́A0.01�܂ł̋�Ԃ�ϕ��͈͂Ƃ��Ă��܂��B</p>
+<p>積分範囲は上式では全区間となっていますが、ガボールのマザーウェーブレット(上式ψ(t))は、下図の通り t=0 を中心にして正負両方向で0に漸近しています。そのため、ほぼ0になるまでの区間のみを積分範囲としても実際は問題ありません。サンプルプログラムでは、0.01までの区間を積分範囲としています。</p>
 
 <p style="text-align: center;"><img style="width: 382px; height: 192px;" alt="gabor_mather.png" src="gabor_mather.png"></p>
 
-<p>���Ԏ��g����͂��s���ɂ́A�p�����[�^ a �� b ��ω�������WT(b,a)���Z�o���܂��B�T���v���v���O�����ł́A�����t�@�C���̒��S����2048�̃T���v���𔲂��o���āA���Ԃ�64�T���v���Ԋu�ŕω������Ȃ���A���g��110Hz����5�I�N�^�[�u�͈̔͂�25cent�P�ʂŉ�͂��Ă��܂��B��͂������ʂ́A�X�y�N�g���O�����ŕ\�����Ă��܂��B</p>
+<p>時間周波数解析を行うには、パラメータ a と b を変化させてWT(b,a)を算出します。サンプルプログラムでは、音声ファイルの中心から2048個のサンプルを抜き出して、時間を64サンプル間隔で変化させながら、周波数110Hzから5オクターブの範囲を25cent単位で解析しています。解析した結果は、スペクトログラムで表示しています。</p>
 
-<p>�X�y�N�g���O������\������ہA�U����F�ɕϊ����܂����A�F�ւ̕ϊ��́A<a href="http://ja.wikipedia.org/wiki/HSV%E8%89%B2%E7%A9%BA%E9%96%93">HSV�F���</a>��H��U���Ƃ��āARGB�F��Ԃւ̕ϊ����s���Ă��܂��B</p>
+<p>スペクトログラムを表示する際、振幅を色に変換しますが、色への変換は、<a href="http://ja.wikipedia.org/wiki/HSV%E8%89%B2%E7%A9%BA%E9%96%93">HSV色空間</a>のHを振幅として、RGB色空間への変換を行っています。</p>
 
-<h3>���s����</h3>
+<h3>実行結果</h3>
 
-<p>���s���ʂ́A���}�̂悤�ɂȂ�܂��B </p>
+<p>実行結果は、下図のようになります。 </p>
 
 <p align="center"><img style="border: 0px solid ; width: 265px; height: 270px;" alt="" src="gabor_wavelet.png"><br>
 <br>
-���s����</p>
+実行結果</p>
 
 <p><br>
-�ԐF�ŕ\������Ă�����g���т��A�����̊�{���g���������Ă��܂��B���Ԃ̎��ԕt�߂ŁA184.997211Hz�ƂȂ��Ă��܂����B<a href="../cepstrum/cepstrum.html">�P�v�X�g�����@</a>�ɂ��Z�o������{���g���ɋ߂��l�ɂȂ��Ă��܂��B</p>
+赤色で表示されている周波数帯が、音声の基本周波数を示しています。中間の時間付近で、184.997211Hzとなっていました。<a href="../cepstrum/cepstrum.html">ケプストラム法</a>により算出した基本周波数に近い値になっています。</p>
 
-<h3>�⑫�P</h3>
+<h3>補足１</h3>
 
-<p>����ŏq�ׂ��ʂ�Ђɂ�莞�ԕ���\�Ǝ��g������\���ω����܂��B�Ђ�ω��������Ƃ��ɁA���Ԏ��g����͂̌��ʂ��ǂ̂悤�ɕω����邩�𒲍����Ă݂܂����B<br>
-</p>�Ђ̒l��ω������Ď��Ԏ��g����͂��s�������ʂ́A�ȉ��̒ʂ�ł��B
+<p>解説で述べた通りσにより時間分解能と周波数分解能が変化します。σを変化させたときに、時間周波数解析の結果がどのように変化するかを調査してみました。<br>
+</p>σの値を変化させて時間周波数解析を行った結果は、以下の通りです。
 
 <table style="text-align: left; margin-left: auto; margin-right: auto;" border="1" cellpadding="2" cellspacing="2">
 
   <tbody>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=0.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=0.5<br>
       </td>
-      <td style="vertical-align: top; text-align: center;">��=1.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=1.0<br>
       </td>
     </tr>
     <tr>
@@ -72,9 +72,9 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=1.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=1.5<br>
       </td>
-      <td style="vertical-align: top; text-align: center;">��=2.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=2.0<br>
       </td>
     </tr>
     <tr>
@@ -83,9 +83,9 @@
       <td style="vertical-align: top; text-align: center;"><img style="width: 265px; height: 270px;" alt="" src="sigma20.png"><br>
       </td>
     </tr><tr>
-      <td style="vertical-align: top; text-align: center;">��=2.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=2.5<br>
       </td>
-      <td style="vertical-align: top; text-align: center;">��=3.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=3.0<br>
       </td>
     </tr>
     <tr>
@@ -98,13 +98,13 @@
   </tbody>
 </table>
 
-<p>��=0.5�ł́A���g�����z���L���肷���ĕ���\���\���łȂ����Ƃ��m�F�ł��܂��B�����̎��ԂŎ��g�����z���O���t�ɂ������̂��ȉ��Ɏ����܂��B</p>
+<p>σ=0.5では、周波数分布が広がりすぎて分解能が十分でないことが確認できます。中央の時間で周波数分布をグラフにしたものを以下に示します。</p>
 <table style="text-align: left; margin-left: auto; margin-right: auto;" border="1" cellpadding="2" cellspacing="2">
   <tbody>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=0.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=0.5<br>
       </td>
-      <td style="vertical-align: top; text-align: center;">��=1.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=1.0<br>
       </td>
     </tr>
     <tr>
@@ -114,9 +114,9 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=1.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=1.5<br>
       </td>
-      <td style="vertical-align: top; text-align: center;">��=2.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=2.0<br>
       </td>
     </tr>
     <tr>
@@ -126,9 +126,9 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=2.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=2.5<br>
       </td>
-      <td style="vertical-align: top; text-align: center;">��=3.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=3.0<br>
       </td>
     </tr>
     <tr>
@@ -139,8 +139,8 @@
     </tr>
   </tbody>
 </table>
-<p>��=0.5�`1.0�ł́A�����g���̑ш�Ŕ{�����\��Ă��܂���B�Ђ�傫������قǔ{�������ꂢ�ɕ\��Ă��܂��B�������A�Ђ�傫������قǁA�K�v�ȃT���v�����������邽�߁A�v�Z���Ԃ��l�����ēK�؂ȃЂ�I�ԕK�v������܂��B</p>
-<p>�Ђɂ��ϕ��ɕK�v�ɂȂ�T���v�����ɂ��Ē��ׂ܂����B�ϕ��͈͂́A�U����0.01�܂ł̋�ԂƂ���ƁA�ȉ��̎��Ōv�Z�ł��܂��B</p>
+<p>σ=0.5～1.0では、高周波数の帯域で倍音が表れていません。σを大きくするほど倍音がきれいに表れています。しかし、σを大きくするほど、必要なサンプル数が増えるため、計算時間を考慮して適切なσを選ぶ必要があります。</p>
+<p>σにより積分に必要になるサンプル数について調べました。積分範囲は、振幅が0.01までの区間とすると、以下の式で計算できます。</p>
 
 
 
@@ -148,7 +148,7 @@
 </p>
 
 
-<p>�K�v�ȃT���v�����́A��͂�����g���ƁA�Ђ̒l�ɂ���ĈقȂ�܂��B����g���̕�����蒷���K�v�ɂȂ�A�Ђ̒l���傫���قǒ����K�v�ɂȂ�܂��BA1�̉��K(55Hz)�����A6(1760Hz)�̉��K����͂��邽�߂ɕK�v�ȃT���v�����͈ȉ��̒ʂ�ł��B�T���v�����O���[�g44.1kHz�ł́A����g���ŃT���v���������Ȃ�傫���Ȃ��Ă��܂��B</p>
+<p>必要なサンプル数は、解析する周波数と、σの値によって異なります。低周波数の方がより長く必要になり、σの値が大きいほど長く必要になります。A1の音階(55Hz)およびA6(1760Hz)の音階を解析するために必要なサンプル数は以下の通りです。サンプリングレート44.1kHzでは、低周波数でサンプル数がかなり大きくなっています。</p>
 
 
 <div align="center">
@@ -158,20 +158,20 @@
     <tr>
       <td colspan="1" rowspan="2" style="vertical-align: top; text-align: center;"><br>
       </td>
-      <td colspan="1" rowspan="2" style="vertical-align: middle; text-align: center;">����(ms)<br>
+      <td colspan="1" rowspan="2" style="vertical-align: middle; text-align: center;">長さ(ms)<br>
       </td>
       
-      <td colspan="2" rowspan="1" style="vertical-align: top; text-align: center;">�T���v����<br>
+      <td colspan="2" rowspan="1" style="vertical-align: top; text-align: center;">サンプル数<br>
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">�T���v�����[�g8kHz<br>
+      <td style="vertical-align: top; text-align: center;">サンプルレート8kHz<br>
       </td>
-      <td style="vertical-align: top; text-align: center;">�T���v�����[�g44.1kHz<br>
+      <td style="vertical-align: top; text-align: center;">サンプルレート44.1kHz<br>
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=0.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=0.5<br>
       </td>
       <td style="vertical-align: top; text-align: center;">55<br>
       </td>
@@ -182,7 +182,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=1.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=1.0<br>
       </td>
       <td style="vertical-align: top; text-align: center;">110<br>
       </td>
@@ -193,7 +193,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=1.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=1.5<br>
       </td>
       <td style="vertical-align: top; text-align: center;">166<br>
       </td>
@@ -204,7 +204,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=2.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=2.0<br>
       </td>
       <td style="vertical-align: top; text-align: center;">221<br>
       </td>
@@ -215,7 +215,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=2.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=2.5<br>
       </td>
       <td style="vertical-align: top; text-align: center;">276<br>
       </td>
@@ -226,7 +226,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=3.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=3.0<br>
       </td>
       <td style="vertical-align: top; text-align: center;">331<br>
       </td>
@@ -245,20 +245,20 @@
     <tr>
       <td colspan="1" rowspan="2" style="vertical-align: top; text-align: center;"><br>
       </td>
-      <td colspan="1" rowspan="2" style="vertical-align: middle; text-align: center;">����(ms)<br>
+      <td colspan="1" rowspan="2" style="vertical-align: middle; text-align: center;">長さ(ms)<br>
       </td>
       
-      <td colspan="2" rowspan="1" style="vertical-align: top; text-align: center;">�T���v����<br>
+      <td colspan="2" rowspan="1" style="vertical-align: top; text-align: center;">サンプル数<br>
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">�T���v�����[�g8kHz<br>
+      <td style="vertical-align: top; text-align: center;">サンプルレート8kHz<br>
       </td>
-      <td style="vertical-align: top; text-align: center;">�T���v�����[�g44.1kHz<br>
+      <td style="vertical-align: top; text-align: center;">サンプルレート44.1kHz<br>
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=0.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=0.5<br>
       </td>
       <td style="vertical-align: top; text-align: center;">1.7<br>
       </td>
@@ -269,7 +269,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=1.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=1.0<br>
       </td>
       <td style="vertical-align: top; text-align: center;">3.4<br>
       </td>
@@ -280,7 +280,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=1.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=1.5<br>
       </td>
       <td style="vertical-align: top; text-align: center;">5.2<br>
       </td>
@@ -291,7 +291,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=2.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=2.0<br>
       </td>
       <td style="vertical-align: top; text-align: center;">6.9<br>
       </td>
@@ -302,7 +302,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=2.5<br>
+      <td style="vertical-align: top; text-align: center;">σ=2.5<br>
       </td>
       <td style="vertical-align: top; text-align: center;">8.6<br>
       </td>
@@ -313,7 +313,7 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top; text-align: center;">��=3.0<br>
+      <td style="vertical-align: top; text-align: center;">σ=3.0<br>
       </td>
       <td style="vertical-align: top; text-align: center;">10.3<br>
       </td>
@@ -329,13 +329,13 @@
 <p>
 </p>
 
-<h3>�⑫�Q<br>
+<h3>補足２<br>
 </h3>
-<p>�����t�@�C���̎��Ԏ��g����͌��ʂ��特�K�𔻒肷��ꍇ�̓K�؂ȃЂ̒l�ɂ��Ē��ׂ܂����B���K�𔻒肷��ɂ́A�Œ�ł��ׂ荇�������𔻕ʂł���K�v������܂��BA1�AA1#�AA4�AA4#�AA6�AA6#�̉��K���Ђ�ω������ĉ�͂������ʂ͈ȉ��̒ʂ�ł��BFFT�ŉ�͂������ʂ����킹�Ď����Ă��܂��B�M���̃T���v�����[�g��8kHz�A�t���[������2048�ł��B�����Ɏg�p����MATLAB(Octave)�̃\�[�X��<a href="sigma.m">����</a>�ł��B</p>
+<p>音声ファイルの時間周波数解析結果から音階を判定する場合の適切なσの値について調べました。音階を判定するには、最低でも隣り合う半音を判別できる必要があります。A1、A1#、A4、A4#、A6、A6#の音階をσを変化させて解析した結果は以下の通りです。FFTで解析した結果もあわせて示しています。信号のサンプルレートは8kHz、フレーム長は2048です。調査に使用したMATLAB(Octave)のソースは<a href="sigma.m">これ</a>です。</p>
 <p style="text-align: center;"><img style="width: 949px; height: 807px;" alt="" src="sigma_freq.png"><br>
 </p>
-<p>��=2�ł́A�����̈Ⴂ����ʂł��Ă��܂���B��=4�ł��Ⴂ���͂����肵�܂���B��=6�ȏ�ł͔����̈Ⴂ���͂������ʂł���悤�ɂȂ��Ă��܂��BFFT�ł́AA1�t�߂̔�������ʂł��Ă��܂��񂪁AA4�AA6�t�߂ł̓K�{�[���E�F�[�u���b�g�����͂�����Ǝ��g���̃s�[�N���\��Ă��܂��B����A�K�{�[���E�F�[�u���b�g�ł́A�Ђ������Ȃ�ǂ̎��g���ł���l�Ȏ��g������\�ƂȂ��Ă��邱�Ƃ��킩��܂��B</p>
-<h3><a name="source"></a>��v�����̃\�[�X</h3>
+<p>σ=2では、半音の違いを区別できていません。σ=4でも違いがはっきりしません。σ=6以上では半音の違いがはっきり区別できるようになっています。FFTでは、A1付近の半音を区別できていませんが、A4、A6付近ではガボールウェーブレットよりもはっきりと周波数のピークが表れています。一方、ガボールウェーブレットでは、σが同じならどの周波数でも一様な周波数分解能となっていることがわかります。</p>
+<h3><a name="source"></a>主要部分のソース</h3>
 
 
 <div style="border: 3px solid gray;">
@@ -348,18 +348,18 @@ cent_max/cent_interval; y++)<br>
 &nbsp;&nbsp;&nbsp; {<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 double freq = freq0 * pow(2.0,
-double(y)*cent_interval/(cent_div*octave_div)); // ���g��<br>
+double(y)*cent_interval/(cent_div*octave_div)); // 周波数<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 double a = 1.0/freq;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-double dt = a*sigma*sqrt(-2.0*log(0.01)); // ����(�b)<br>
+double dt = a*sigma*sqrt(-2.0*log(0.01)); // 窓幅(秒)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 int&nbsp;&nbsp;&nbsp; dx = int(dt *
 Fs);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp; &nbsp; // ����(�T���v����)<br>
+&nbsp; &nbsp; // 窓幅(サンプル数)<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-// �����͈̔͂�ϕ�<br>
+// 窓幅の範囲を積分<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 double real_wt = 0;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -368,7 +368,7 @@ double imag_wt = 0;<br>
 for (int m = -dx; m &lt;= dx; m++)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-int n = b + m; // �M���̃T���v���ʒu<br>
+int n = b + m; // 信号のサンプル位置<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 if (n &gt;= 0 &amp;&amp; n &lt; size)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -377,9 +377,9 @@ if (n &gt;= 0 &amp;&amp; n &lt; size)<br>
 double t = double(m)/Fs/a;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 double gauss = 1.0/sqrt(2.0*M_PI*sigma*sigma) *
-exp(-t*t/(2.0*sigma*sigma)); // �K�E�X�֐�<br>
+exp(-t*t/(2.0*sigma*sigma)); // ガウス関数<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-double omega_t = 2.0*M_PI*t; // ��t<br>
+double omega_t = 2.0*M_PI*t; // ωt<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 real_wt += double(wav[n]) * gauss * cos(omega_t);<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -394,21 +394,21 @@ wt[y] = 1.0/sqrt(a) * sqrt(real_wt*real_wt + imag_wt*imag_wt);<br>
 <br>
 void analyze()<br>
 {<br>
-&nbsp;&nbsp;&nbsp; // wave�t�@�C���ǂݍ���<br>
-&nbsp;&nbsp;&nbsp; int Fs; // �T���v�����O���g��<br>
+&nbsp;&nbsp;&nbsp; // waveファイル読み込み<br>
+&nbsp;&nbsp;&nbsp; int Fs; // サンプリング周波数<br>
 &nbsp;&nbsp;&nbsp; int wav_length;<br>
 &nbsp;&nbsp;&nbsp; float *wav = read_wav(L"a.wav",
 &amp;Fs, &amp;wav_length);<br>
 <br>
-&nbsp;&nbsp;&nbsp; int center = wav_length/2; // ���S�̃T���v���ԍ�<br>
+&nbsp;&nbsp;&nbsp; int center = wav_length/2; // 中心のサンプル番号<br>
 <br>
 &nbsp;&nbsp;&nbsp; double cuttime = 0.046440; //
-�؂�o������[s](2048�T���v��)<br>
+切り出す長さ[s](2048サンプル)<br>
 &nbsp;&nbsp;&nbsp; int wavdata_length = int(cuttime/2*Fs)*2;<br>
 &nbsp;&nbsp;&nbsp; float *p_wav = wav + center -
 wavdata_length/2 - 1;<br>
 <br>
-&nbsp;&nbsp;&nbsp; // �K�{�[���E�F�[�u���b�g�ϊ�<br>
+&nbsp;&nbsp;&nbsp; // ガボールウェーブレット変換<br>
 &nbsp;&nbsp;&nbsp; double wt[cent_max/cent_interval];<br>
 &nbsp;&nbsp;&nbsp; for (int x = 0; x &lt;
 wavdata_length; x+=64)<br>
@@ -417,7 +417,7 @@ wavdata_length; x+=64)<br>
 gabor_transform(p_wav, x, wavdata_length, Fs, wt);<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-// �X�y�N�g���O�����`��<br>
+// スペクトログラム描画<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 for (int y = 0; y &lt; cent_max/cent_interval; y++)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {<br>
@@ -433,16 +433,16 @@ LineTo(hdcBack, (x+64)/8, y0 - y);<br>
 &nbsp;&nbsp;&nbsp; }<br>
 }</span></div>
 
-<h3>�Q�l����</h3>
+<h3>参考文献</h3>
 
 <ul>
 
-  <li><a href="http://www.amazon.co.jp/gp/product/4797331666/">�ŐV�E�F�[�u���b�g���H�u�� ����Ɖ��p �M�������̊�b����ŐV���_�܂� (C magazine)</a>(SoftBank Creative) 
-���킩��₷������Œ��̂��ߒ��Âœ��肷�邵������܂���B</li>
-  <li><a href="http://www.amazon.co.jp/gp/product/4501520604/">�E�F�[�u���b�g���� (�����Ȋw�Z�~�i�[)</a>(�����d�@��w�o�ŋ�)
-���ؖ����S�Ȃ̂œ���B</li>
-  <li><a href="http://www.amazon.co.jp/gp/product/4320085493/">�E�F�[�u���b�g�ɂ��M�������Ɖ摜����</a>(�����o��)
-���K�{�[���E�F�[�u���b�g�ɂ��ċL�q�͏��Ȃ��B</li>
+  <li><a href="http://www.amazon.co.jp/gp/product/4797331666/">最新ウェーブレット実践講座 入門と応用 信号処理の基礎から最新理論まで (C magazine)</a>(SoftBank Creative) 
+※わかりやすいが絶版中のため中古で入手するしかありません。</li>
+  <li><a href="http://www.amazon.co.jp/gp/product/4501520604/">ウェーブレット入門 (数理科学セミナー)</a>(東京電機大学出版局)
+※証明中心なので難しい。</li>
+  <li><a href="http://www.amazon.co.jp/gp/product/4320085493/">ウェーブレットによる信号処理と画像処理</a>(共立出版)
+※ガボールウェーブレットについて記述は少ない。</li>
 </ul>
 
 <hr>
@@ -451,14 +451,14 @@ LineTo(hdcBack, (x+64)/8, y0 - y);<br>
   <tr>
     <td style="text-align: center;"><a href="https://itunes.apple.com/jp/app/vocalpitchmonitor/id842218231?mt=8"><img
   
-          style="width: 150px; height: 84px;" alt="" src="http://hp.vector.co.jp/authors/VA046927/VocalPitchMonitor/screen568x568.jpeg"><br>
-        iPhone�A�v��<br>
+          style="width: 150px; height: 84px;" alt="" src="../VocalPitchMonitor/screen568x568.jpeg"><br>
+        iPhoneアプリ<br>
         VocalPitchMonitor</a><br>
     </td>
     <td style="text-align: center;"><a href="https://itunes.apple.com/jp/app/audiospectrummonitor/id832421010?mt=8"><img
   
-          style="width: 150px; height: 84px;" alt="" src="http://hp.vector.co.jp/authors/VA046927/AudioSpectrumMonitor_iOS/screen568x568.jpeg"><br>
-        iPhone�A�v��<br>
+          style="width: 150px; height: 84px;" alt="" src="../AudioSpectrumMonitor_iOS/screen568x568.jpeg"><br>
+        iPhoneアプリ<br>
         AudioSpectrumMonitor</a><br>
     </td>
     <td>
@@ -471,5 +471,5 @@ LineTo(hdcBack, (x+64)/8, y0 - y);<br>
 </table>
 
 <hr>
-<a href="http://hp.vector.co.jp/authors/VA046927/">�g�b�v�y�[�W��</a>
+<a href="../">トップページへ</a>
 </body></html>

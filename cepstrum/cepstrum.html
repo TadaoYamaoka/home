@@ -1,49 +1,49 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head><title></title>
-<meta content="text/html; charset=shift_jis" http-equiv="Content-Type">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <meta name="GENERATOR" content="MSHTML 8.00.6001.18904"></head>
 <body>
-<div align="right"><!-- shinobi ct2 --><script src="http://ct2.kagebo-shi.com/sc/1421883" type="text/javascript"></script><noscript><a href="http://ct2.kagebo-shi.com/gg/1421883" target="_blank"><img border="0" alt="�J�E���^�[" src="http://ct2.kagebo-shi.com/ll/1421883"></a> </noscript><!-- /shinobi ct2 --></div>
-<h1>C/C++����ŃP�v�X�g�����@�ɂ���{���g����͂��s���T���v���v���O����</h1>
-<p>�X�V�����F2010/5/3</p>
-<p>C/C++����ŃP�v�X�g�����@�ɂ���{���g����͂��s���T���v���v���O�����ł��B<a href="http://shower.human.waseda.ac.jp/~m-kouki/pukiwiki_public/73.html#c6ecefea">����</a>�Ō��J����Ă���MATLAB�̃T���v���\�[�X�����ɂ��Ă��܂��B<br>
+<div align="right"><!-- shinobi ct2 --><script src="http://ct2.kagebo-shi.com/sc/1421883" type="text/javascript"></script><noscript><a href="http://ct2.kagebo-shi.com/gg/1421883" target="_blank"><img border="0" alt="カウンター" src="http://ct2.kagebo-shi.com/ll/1421883"></a> </noscript><!-- /shinobi ct2 --></div>
+<h1>C/C++言語でケプストラム法により基本周波数解析を行うサンプルプログラム</h1>
+<p>更新日時：2010/5/3</p>
+<p>C/C++言語でケプストラム法により基本周波数解析を行うサンプルプログラムです。<a href="http://shower.human.waseda.ac.jp/~m-kouki/pukiwiki_public/73.html#c6ecefea">ここ</a>で公開されているMATLABのサンプルソースを元にしています。<br>
 <br>
-��͑Ώۂ̉����t�@�C���́A<a href="http://shower.human.waseda.ac.jp/~m-kouki/pukiwiki_public/73.html#c6ecefea">���T�C�g</a>�Ō��J����Ă���<font color="#ff0000">a.wav</font>���g�p���܂����B<br>
-�T���v���̂��߁A�Ή����Ă���wav�t�@�C���̃t�H�[�}�b�g�́A�`�����l���������m�����ŁA�r�b�g�^�T���v����32bit�݂̂ł��B<br>
-�܂��AFFT�̃\�[�X�́A<a href="http://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmndl.html">����</a>�̃\�[�X���g�p���Ă��܂��B 
+解析対象の音声ファイルは、<a href="http://shower.human.waseda.ac.jp/~m-kouki/pukiwiki_public/73.html#c6ecefea">同サイト</a>で公開されている<font color="#ff0000">a.wav</font>を使用しました。<br>
+サンプルのため、対応しているwavファイルのフォーマットは、チャンネル数がモノラルで、ビット／サンプルが32bitのみです。<br>
+また、FFTのソースは、<a href="http://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmndl.html">ここ</a>のソースを使用しています。 
 
-<h3>�T���v���\�[�X</h3>�T���v���\�[�X�̎�v������<a href="#source">���̕�</a>�ɍڂ��Ă��܂��B�S�\�[�X��<a href="cepstrum.cpp">������</a>�ɂ���܂��B�r���h�ς݂̎��s�t�@�C����Visual C++ 2008 Express 
-Edition�p�̃v���W�F�N�g��<a href="cepstrum.zip">������</a>����_�E�����[�h�ł��܂��B 
-<h3>���s����</h3>
-<p>���s���ʂ́A���}�̂悤�ɂȂ�܂��B </p>
+<h3>サンプルソース</h3>サンプルソースの主要部分は<a href="#source">下の方</a>に載せています。全ソースは<a href="cepstrum.cpp">こちら</a>にあります。ビルド済みの実行ファイルとVisual C++ 2008 Express 
+Edition用のプロジェクトは<a href="cepstrum.zip">こちら</a>からダウンロードできます。 
+<h3>実行結果</h3>
+<p>実行結果は、下図のようになります。 </p>
 <p align="center"><img border="0" alt="" src="cepstrum.png" width="717" height="490"><br>
 <br>
-���s����</p>
+実行結果</p>
 <p><br>
-MATLAB(Octave)�̎��s���ʂƔ�r���āA�قړ������ʂɂȂ��Ă��܂��B�Ȃ��A�M�҂�MATLAB�������Ă��Ȃ��̂�MATLAB�݊��̃t���[�\�t�g�ł���<a href="http://www.gnu.org/software/octave/">Octave</a>���g�p���܂����B</p>
+MATLAB(Octave)の実行結果と比較して、ほぼ同じ結果になっています。なお、筆者はMATLABを持っていないのでMATLAB互換のフリーソフトである<a href="http://www.gnu.org/software/octave/">Octave</a>を使用しました。</p>
 <p align="center"><img border="0" alt="" src="octave.png" width="705" height="527"> 
 <br>
-MATLAB(Octave)�̎��s����<br>
+MATLAB(Octave)の実行結果<br>
 <br>
-��{���g���F185.29 Hz<br>
+基本周波数：185.29 Hz<br>
 </p>
-<h3>�⑫</h3>
-<p>�P�v�X�g������͂��s���ہA���֐����g�p���Ȃ��Ɛ��������ʂ������܂���ł����B�ΐ��U���X�y�N�g���̋t�t�[���G�ϊ��̌��ʂ����ׂĕs��(-1.#IND00e+000)�ƂȂ��Ă��܂��܂����B���֐��̓K�p�͏d�v�Ȃ悤�ł��B 
+<h3>補足</h3>
+<p>ケプストラム解析を行う際、窓関数を使用しないと正しい結果が得られませんでした。対数振幅スペクトルの逆フーリエ変換の結果がすべて不定(-1.#IND00e+000)となってしまいました。窓関数の適用は重要なようです。 
 
 <p align="center"><img border="0" alt="" src="cepstrum2.png" width="717" height="490"><br>
 <br>
-���֐��Ȃ��̎��s����<br>
+窓関数なしの実行結果<br>
 <br>
 </p>
-<p>MATLAB(Octave)�ł́A���ʂ͕\������܂����A���ꂢ�ȃs�[�N�ɂȂ�܂���B</p>
+<p>MATLAB(Octave)では、結果は表示されますが、きれいなピークになりません。</p>
 <p align="center"><img border="0" alt="" src="octave2.png" width="705" height="527"><br>
 <br>
-MATLAB(Octave)�ł̑��֐��Ȃ��̎��s����<br>
+MATLAB(Octave)での窓関数なしの実行結果<br>
 <br>
-��{���g���F181.48 Hz<br>
+基本周波数：181.48 Hz<br>
 <br>
 </p>
-<h3><a name="source"></a>��v�����̃\�[�X</h3>
+<h3><a name="source"></a>主要部分のソース</h3>
 <div style="BORDER-BOTTOM: gray 3px solid; BORDER-LEFT: gray 3px solid; BORDER-TOP: gray 3px solid; BORDER-RIGHT: gray 3px solid"><pre><code>
 HANDLE hFile = CreateFile(L"a.wav", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
@@ -63,22 +63,22 @@ DWORD wav_length = data.chunkSize/sizeof(float);
 float *wav = new float[wav_length];
 ReadFile(hFile, wav, data.chunkSize, &amp;readsize, NULL);
 
-int center = wav_length/2; // ���S�̃T���v���ԍ�
+int center = wav_length/2; // 中心のサンプル番号
 
-double cuttime = 0.046440; // �؂�o������[s]
+double cuttime = 0.046440; // 切り出す長さ[s]
 int wavdata_length = int(cuttime/2*Fs)*2;
 TRACE(L"%d wavdata length\n", wavdata_length);
 double *wavdata = new double[fftsize];
 float *p_wav = wav + center - wavdata_length/2 - 1;
 for (int i = 0; i &lt; fftsize; ++i, ++p_wav)
 {
-    // �n�j���O��
+    // ハニング窓
     wavdata[i] = han_window(i, wavdata_length) * double(*p_wav);
 }
 
-rdft(fftsize, 1, wavdata, ip, w); // ���U�t�[���G�ϊ�
+rdft(fftsize, 1, wavdata, ip, w); // 離散フーリエ変換
 
-double Adft_log[fftsize/2+1]; // �ΐ��U���X�y�N�g��
+double Adft_log[fftsize/2+1]; // 対数振幅スペクトル
 Adft_log[0] = log10(wavdata[0]) / fftsize;
 Adft_log[fftsize/2] = log10(wavdata[1]) / fftsize;
 TRACE(L"%f\t%f\t%e\n", wavdata[0], 0.0, Adft_log[0]);
@@ -87,7 +87,7 @@ for (int i = 1; i &lt; fftsize/2; ++i)
     Adft_log[i] = log10(power(wavdata[i*2], wavdata[i*2+1])) / fftsize;
 }
 
-// �t�t�[���G�ϊ�
+// 逆フーリエ変換
 double *cps = new double [fftsize];
 for (int i = 0; i &lt; fftsize/2; ++i)
 {
@@ -95,12 +95,12 @@ for (int i = 0; i &lt; fftsize/2; ++i)
     cps[i*2+1] = 0.0;
 }
 cps[1] = Adft_log[fftsize/2];
-rdft(fftsize, -1, cps, ip, w); // ���U�t�[���G�ϊ�
+rdft(fftsize, -1, cps, ip, w); // 離散フーリエ変換
 
-// ��{���g���s�[�N���o
+// 基本周波数ピーク抽出
 int low_cut_num = fftsize/2/20;
 int max_n = find_max(cps + low_cut_num, fftsize/2 - low_cut_num) + low_cut_num;
-// ��{���g���ɕϊ�
+// 基本周波数に変換
 double peakQuefrency = 1.0 / Fs * max_n;
 double f0 = 1.0 / peakQuefrency;
 TRACE(L"%f Hz\n", f0);
